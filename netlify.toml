@@ -11,6 +11,9 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Configure no painel Netlify → Site settings → Environment variables:
+# SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ASAAS_API_KEY, ADMIN_PASSWORD
+
 [[headers]]
   for = "/*"
   [headers.values]

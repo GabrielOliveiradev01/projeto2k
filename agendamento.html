@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Agendamento — 2k Barbearia</title>
+  <meta name="description" content="Agende seu horário na 2k Barbearia. Verifique sua assinatura e escolha entre os gêmeos barbeiros.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="booking-page">
+  <div class="noise"></div>
+
+  <header class="header scrolled">
+    <nav class="nav container">
+      <a href="./index.html" class="logo">
+        <span class="logo-icon">✂</span>
+        <span>2k</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="./index.html#inicio">Início</a></li>
+        <li><a href="./index.html#planos">Planos</a></li>
+        <li><a href="./agendamento.html" aria-current="page">Agendar</a></li>
+        <li><a href="./checkout.html">Assinar</a></li>
+        <li><a href="./index.html#contato">Contato</a></li>
+      </ul>
+      <a href="./checkout.html" class="btn btn-sm nav-cta">Assinar</a>
+      <button class="menu-toggle" aria-label="Abrir menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="booking">
+      <div class="container">
+        <div class="booking-header">
+          <span class="section-tag">Agendamento</span>
+          <h1 class="section-title">Reserve seu horário</h1>
+          <p class="section-desc">
+            Informe seu CPF para verificar a assinatura. Com plano ativo, escolha o barbeiro e o melhor horário.
+          </p>
+        </div>
+
+        <div class="booking-layout">
+          <!-- Passo 1: CPF -->
+          <div class="booking-step" id="step-cpf">
+            <div class="booking-card">
+              <h2>Verificar assinatura</h2>
+              <p class="booking-card-desc">O agendamento online é exclusivo para assinantes ativos.</p>
+
+              <div class="booking-error" id="booking-error" role="alert" hidden></div>
+
+              <form id="cpf-form" class="booking-form" novalidate>
+                <div class="form-group">
+                  <label for="booking-cpf">CPF</label>
+                  <input
+                    type="text"
+                    id="booking-cpf"
+                    placeholder="000.000.000-00"
+                    required
+                    inputmode="numeric"
+                    autocomplete="off"
+                    maxlength="14"
+                  >
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="cpf-submit">
+                  Verificar e continuar
+                </button>
+              </form>
+
+              <p class="booking-hint">
+                Ainda não é assinante?
+                <a href="./checkout.html">Assine um plano</a>
+              </p>
+            </div>
+          </div>
+
+          <!-- Passo 2: Agendamento -->
+          <div class="booking-step" id="step-schedule" hidden>
+            <div class="booking-card booking-card-wide">
+              <div class="booking-welcome" id="booking-welcome"></div>
+
+              <form id="schedule-form" class="booking-form" novalidate>
+                <fieldset class="booking-fieldset">
+                  <legend>Escolha o barbeiro</legend>
+                  <div class="barber-grid" role="radiogroup" aria-label="Barbeiros disponíveis">
+                    <label class="barber-card">
+                      <input type="radio" name="barber" value="gemeo-1" required>
+                      <span class="barber-card-inner">
+                        <img src="./images/irmao-esquerda.png" alt="Gêmeo 1">
+                        <span class="barber-name">Gêmeo 1</span>
+                      </span>
+                    </label>
+                    <label class="barber-card">
+                      <input type="radio" name="barber" value="gemeo-2" required>
+                      <span class="barber-card-inner">
+                        <img src="./images/irmao-direita.png" alt="Gêmeo 2">
+                        <span class="barber-name">Gêmeo 2</span>
+                      </span>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="booking-fieldset">
+                  <legend>Escolha a data</legend>
+                  <p class="booking-field-hint" id="date-hint">Selecione um barbeiro para ver as datas disponíveis.</p>
+                  <div class="date-grid" id="date-grid" role="radiogroup" aria-label="Datas disponíveis"></div>
+                </fieldset>
+
+                <fieldset class="booking-fieldset" id="time-fieldset" hidden>
+                  <legend>Escolha o horário</legend>
+                  <p class="booking-slots-hint" id="slots-hint">Horários das 9h às 18h, com intervalo de 1h30 entre cada atendimento.</p>
+                  <div class="time-grid" id="time-grid" role="radiogroup" aria-label="Horários disponíveis"></div>
+                </fieldset>
+
+                <button type="submit" class="btn btn-primary btn-full" id="schedule-submit" disabled>
+                  Confirmar agendamento
+                </button>
+              </form>
+
+              <button type="button" class="btn btn-outline btn-full booking-back" id="booking-back">
+                Trocar CPF
+              </button>
+            </div>
+          </div>
+
+          <!-- Passo 3: Sucesso -->
+          <div class="booking-step" id="step-success" hidden>
+            <div class="booking-card booking-success-card">
+              <div class="booking-success-icon" aria-hidden="true">✓</div>
+              <h2>Agendamento confirmado!</h2>
+              <p id="success-message"></p>
+              <div class="booking-success-details" id="success-details"></div>
+              <a href="./agendamento.html" class="btn btn-primary btn-full">Fazer outro agendamento</a>
+              <a href="./index.html" class="btn btn-outline btn-full">Voltar ao início</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <a href="./index.html" class="logo">
+        <span class="logo-icon">✂</span>
+        <span>2k</span>
+      </a>
+      <p>&copy; 2026 2k Barbearia. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="./agendamento.js"></script>
+</body>
+</html>
