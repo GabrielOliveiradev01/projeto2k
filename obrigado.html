@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mensagem enviada — 2k Barbearia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .success-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .success-box {
+      max-width: 480px;
+      padding: 3rem 2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .success-box h1 {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 1rem;
+      color: var(--red);
+    }
+
+    .success-box p {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="success-page">
+    <div class="success-box">
+      <h1 id="success-title">Recebemos!</h1>
+      <p id="success-message">Sua mensagem foi enviada com sucesso. Em breve entraremos em contato.</p>
+      <a href="/" class="btn btn-primary">Voltar ao site</a>
+    </div>
+  </main>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('assinatura') === '1') {
+      const plan = params.get('plano');
+      document.getElementById('success-title').textContent = 'Assinatura ativa!';
+      document.getElementById('success-message').textContent = plan
+        ? `Sua assinatura do plano ${decodeURIComponent(plan)} foi criada com sucesso.`
+        : 'Sua assinatura foi criada com sucesso. Em breve você receberá a confirmação por e-mail.';
+    }
+  </script>
+</body>
+</html>

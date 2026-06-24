@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Checkout — 2k Barbearia</title>
+  <meta name="description" content="Finalize sua assinatura na 2k Barbearia com cartão de crédito.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="checkout-page">
+  <div class="noise"></div>
+
+  <header class="header scrolled">
+    <nav class="nav container">
+      <a href="./index.html" class="logo">
+        <span class="logo-icon">✂</span>
+        <span>2k</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="./index.html#inicio">Início</a></li>
+        <li><a href="./index.html#planos">Planos</a></li>
+        <li><a href="./checkout.html" aria-current="page">Checkout</a></li>
+        <li><a href="./index.html#contato">Contato</a></li>
+      </ul>
+      <a href="./index.html#planos" class="btn btn-sm nav-cta">Ver planos</a>
+      <button class="menu-toggle" aria-label="Abrir menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="checkout">
+      <div class="container">
+        <div class="checkout-header">
+          <span class="section-tag">Assinatura</span>
+          <h1 class="section-title">Checkout</h1>
+          <p class="section-desc">
+            Inscreva-se no plano escolhido e pague com cartão de crédito de forma segura.
+          </p>
+        </div>
+
+        <div class="checkout-layout">
+          <aside class="checkout-summary" aria-label="Resumo do pedido">
+            <div class="checkout-summary-card">
+              <h2>Resumo da assinatura</h2>
+              <div class="checkout-plan-info">
+                <span class="checkout-plan-badge" id="summary-badge">Limited</span>
+                <p class="checkout-plan-name" id="summary-plan">Cuts Limited</p>
+                <p class="checkout-plan-desc" id="summary-desc">Cortes de cabelo com limite mensal</p>
+              </div>
+              <ul class="checkout-features" id="summary-features">
+                <li>Cortes de cabelo</li>
+                <li>Quantidade limitada/mês</li>
+                <li>Agendamento online</li>
+              </ul>
+              <div class="checkout-total">
+                <span>Total mensal</span>
+                <strong id="summary-price">R$ 89,90</strong>
+              </div>
+              <p class="checkout-secure">
+                <span aria-hidden="true">🔒</span>
+                Pagamento criptografado e cobrança recorrente mensal.
+              </p>
+            </div>
+          </aside>
+
+          <form id="checkout-form" class="checkout-form" novalidate>
+            <div class="checkout-error" id="checkout-error" role="alert" hidden></div>
+
+            <fieldset class="checkout-fieldset">
+              <legend>Dados pessoais</legend>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="checkout-name">Nome completo</label>
+                  <input type="text" id="checkout-name" placeholder="Seu nome" required autocomplete="name">
+                </div>
+                <div class="form-group">
+                  <label for="checkout-cpf">CPF</label>
+                  <input type="text" id="checkout-cpf" placeholder="000.000.000-00" required inputmode="numeric" autocomplete="off" maxlength="14">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="checkout-email">E-mail</label>
+                  <input type="email" id="checkout-email" placeholder="seu@email.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                  <label for="checkout-phone">Telefone</label>
+                  <input type="tel" id="checkout-phone" placeholder="(11) 99999-9999" required autocomplete="tel" maxlength="15">
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="checkout-fieldset">
+              <legend>Plano</legend>
+              <div class="form-group">
+                <label for="checkout-plan">Selecione o plano</label>
+                <select id="checkout-plan" required>
+                  <optgroup label="Assinatura — Limited">
+                    <option value="cuts-limited" selected>Cuts Limited — R$ 89,90/mês</option>
+                    <option value="barb-limited">Barb Limited — R$ 119,90/mês</option>
+                    <option value="duos-limited">Duos Limited — R$ 179,90/mês</option>
+                  </optgroup>
+                  <optgroup label="Assinatura — Infinite">
+                    <option value="cuts-infinite">Cuts Infinite — R$ 99,90/mês</option>
+                    <option value="barb-infinite">Barb Infinite — R$ 129,90/mês</option>
+                    <option value="duos-infinite">Duos Infinite — R$ 199,90/mês</option>
+                  </optgroup>
+                </select>
+              </div>
+            </fieldset>
+
+            <fieldset class="checkout-fieldset">
+              <legend>Cartão de crédito</legend>
+              <div class="card-brands" aria-hidden="true">
+                <span>Visa</span>
+                <span>Mastercard</span>
+                <span>Elo</span>
+                <span>Amex</span>
+              </div>
+              <div class="form-group">
+                <label for="checkout-card-number">Número do cartão</label>
+                <input type="text" id="checkout-card-number" placeholder="0000 0000 0000 0000" required inputmode="numeric" autocomplete="cc-number" maxlength="19">
+              </div>
+              <div class="form-group">
+                <label for="checkout-card-name">Nome no cartão</label>
+                <input type="text" id="checkout-card-name" placeholder="Como está no cartão" required autocomplete="cc-name">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="checkout-card-expiry">Validade</label>
+                  <input type="text" id="checkout-card-expiry" placeholder="MM/AA" required inputmode="numeric" autocomplete="cc-exp" maxlength="5">
+                </div>
+                <div class="form-group">
+                  <label for="checkout-card-cvv">CVV</label>
+                  <input type="text" id="checkout-card-cvv" placeholder="123" required inputmode="numeric" autocomplete="cc-csc" maxlength="4">
+                </div>
+              </div>
+            </fieldset>
+
+            <label class="checkout-terms">
+              <input type="checkbox" id="checkout-terms" required>
+              <span>Li e aceito os termos da assinatura mensal e a política de cancelamento.</span>
+            </label>
+
+            <button type="submit" class="btn btn-primary btn-full" id="checkout-submit">
+              Assinar com cartão
+            </button>
+
+            <p class="checkout-disclaimer">
+              Ao confirmar, você autoriza a cobrança recorrente mensal no cartão informado.
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <a href="./index.html" class="logo">
+        <span class="logo-icon">✂</span>
+        <span>2k</span>
+      </a>
+      <p>&copy; 2026 2k Barbearia. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="./checkout.js"></script>
+</body>
+</html>

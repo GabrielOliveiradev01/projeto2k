@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>2k — Barbearia | Planos por Assinatura</title>
+  <meta name="description" content="2k — Barbearia dos irmãos gêmeos. Cortes modernos, planos por assinatura e estilo afiado.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+
+  <header class="header">
+    <nav class="nav container">
+      <a href="#" class="logo">
+        <span class="logo-icon">✂</span>
+        <span>2k</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#inicio">Início</a></li>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a href="#galeria">Galeria</a></li>
+        <li><a href="#planos">Planos</a></li>
+        <li><a href="./checkout.html">Checkout</a></li>
+        <li><a href="#valores">Valores</a></li>
+        <li><a href="#contato">Contato</a></li>
+      </ul>
+      <a href="./checkout.html" class="btn btn-sm nav-cta">Assinar</a>
+      <button class="menu-toggle" aria-label="Abrir menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="inicio" class="hero">
+      <div class="hero-bg">
+        <div class="hero-photo hero-photo-left" aria-hidden="true">
+          <img src="./images/irmao-esquerda.png" alt="Irmão barbeiro da 2k">
+        </div>
+        <div class="hero-photo hero-photo-right" aria-hidden="true">
+          <img src="./images/irmao-direita.png" alt="Irmão barbeiro da 2k">
+        </div>
+        <div class="hero-gradient"></div>
+        <div class="hero-vignette"></div>
+        <div class="hero-lines"></div>
+      </div>
+      <div class="container hero-content">
+        <div class="hero-badge reveal">Assinatura Premium</div>
+        <h1 class="hero-title reveal">
+          <span class="line">Seu estilo,</span>
+          <span class="line accent">sempre afiado.</span>
+        </h1>
+        <p class="hero-subtitle reveal">
+          A barbearia dos irmãos gêmeos. Corte, barba ou combo —
+          escolha seu plano e mantenha o visual afiado o mês inteiro.
+        </p>
+        <div class="hero-actions reveal">
+          <a href="#planos" class="btn btn-primary">Ver Planos</a>
+          <a href="#sobre" class="btn btn-outline">Conheça os Irmãos</a>
+        </div>
+        <div class="hero-stats reveal">
+          <div class="stat">
+            <span class="stat-number" data-count="500">0</span><span class="stat-suffix">+</span>
+            <span class="stat-label">Clientes ativos</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-number" data-count="6">0</span>
+            <span class="stat-label">Planos disponíveis</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-number" data-count="5">0</span><span class="stat-suffix">★</span>
+            <span class="stat-label">Avaliação média</span>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-indicator">
+        <span>Scroll</span>
+        <div class="scroll-line"></div>
+      </div>
+    </section>
+
+    <section id="sobre" class="about">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-text reveal">
+            <span class="section-tag">Sobre nós</span>
+            <h2 class="section-title">Dois irmãos.<br>Um só estilo.</h2>
+            <p>
+              A <strong>2k</strong> nasceu da paixão de dois irmãos gêmeos pelo corte de cabelo.
+              Cresceram juntos, aprenderam juntos e hoje levam essa sintonia única para cada
+              fade, cada degradê e cada detalhe na cadeira.
+            </p>
+            <p>
+              Mais do que barbeiros, são parceiros de estilo — com técnica afiada, olhar moderno
+              e a energia de quem faz isso de verdade, lado a lado.
+            </p>
+            <ul class="features-list">
+              <li><span class="feature-icon">◆</span> Dois irmãos gêmeos barbeiros</li>
+              <li><span class="feature-icon">◆</span> Cortes modernos e precisos</li>
+              <li><span class="feature-icon">◆</span> Ambiente descontraído e acolhedor</li>
+              <li><span class="feature-icon">◆</span> Planos por assinatura</li>
+            </ul>
+          </div>
+          <div class="about-visual reveal">
+            <div class="about-twins">
+              <div class="twin-card twin-card-left">
+                <img src="./images/irmao-esquerda.png" alt="Irmão barbeiro da 2k">
+                <div class="twin-glow"></div>
+              </div>
+              <div class="twin-card twin-card-right">
+                <img src="./images/irmao-direita.png" alt="Irmão barbeiro da 2k">
+                <div class="twin-glow"></div>
+              </div>
+              <span class="about-twins-label">Os gêmeos da 2k</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="galeria" class="gallery">
+      <div class="gallery-sticky">
+        <div class="gallery-header container">
+          <div class="gallery-header-text reveal">
+            <span class="section-tag">Galeria</span>
+            <h2 class="section-title">Nossos trabalhos</h2>
+            <p class="section-desc">Role para explorar cortes, barbas e o ambiente da barbearia.</p>
+          </div>
+          <div class="gallery-meta">
+            <span class="gallery-counter">
+              <span class="gallery-counter-current">01</span>
+              <span class="gallery-counter-sep">/</span>
+              <span class="gallery-counter-total">15</span>
+            </span>
+            <div class="gallery-progress">
+              <div class="gallery-progress-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gallery-viewport">
+          <div class="gallery-track">
+            <article class="gallery-item active">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-01.jpg" alt="Fade clássico 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Corte</span>
+                <h3>Fade Clássico</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-02.jpg" alt="Degradê 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Corte</span>
+                <h3>Degradê Limpo</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-03.jpg" alt="Estilo moderno 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Estilo</span>
+                <h3>Visual Moderno</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-04.jpg" alt="Corte infantil 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Corte</span>
+                <h3>Corte Infantil</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-05.jpg" alt="Risco e fade 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Precisão</span>
+                <h3>Risco & Fade</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-06.jpg" alt="Skin fade 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Corte</span>
+                <h3>Skin Fade</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-07.jpg" alt="Barba 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Barba</span>
+                <h3>Barba Desenhada</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-08.jpg" alt="Combo corte e barba 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Combo</span>
+                <h3>Corte + Barba</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-09.jpg" alt="Navalhado 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Corte</span>
+                <h3>Navalhado</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-10.jpg" alt="Fade alto 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Corte</span>
+                <h3>Fade Alto</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-11.jpg" alt="Degradê médio 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Corte</span>
+                <h3>Degradê Médio</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-12.jpg" alt="Estilo 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Estilo</span>
+                <h3>Estilo 2k</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-13.jpg" alt="Detalhe na linha 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Precisão</span>
+                <h3>Detalhe na Linha</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-14.jpg" alt="Trabalho 2k barbearia" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">2k</span>
+                <h3>Nosso Trabalho</h3>
+              </div>
+            </article>
+
+            <article class="gallery-item">
+              <div class="gallery-image">
+                <img src="./images/nosso-trabalho/trabalho-15.jpg" alt="Corte premium 2k" loading="eager" decoding="async">
+                <div class="gallery-overlay"></div>
+              </div>
+              <div class="gallery-caption">
+                <span class="gallery-tag">Corte</span>
+                <h3>Corte Premium</h3>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="gallery-scroll-hint">
+          <span>Role para navegar</span>
+          <div class="gallery-scroll-arrow">→</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="planos" class="plans">
+      <div class="container">
+        <div class="plans-header reveal">
+          <span class="section-tag">Assinatura</span>
+          <h2 class="section-title">Planos por Assinatura</h2>
+          <p class="section-desc">
+            Escolha entre os planos Limited ou Infinite e mantenha seu visual sempre em dia.
+          </p>
+        </div>
+
+        <div class="plans-category reveal">
+          <div class="category-header">
+            <span class="category-badge limited">Limited</span>
+            <p>Planos com quantidade definida de visitas por mês</p>
+          </div>
+          <div class="plans-grid">
+            <article class="plan-card">
+              <div class="plan-glow"></div>
+              <h3 class="plan-name">Cuts Limited</h3>
+              <p class="plan-desc">Cortes de cabelo com limite mensal</p>
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">89</span>
+                <span class="cents">,90</span>
+                <span class="period">/mês</span>
+              </div>
+              <ul class="plan-features">
+                <li>Cortes de cabelo</li>
+                <li>Quantidade limitada/mês</li>
+                <li>Agendamento online</li>
+              </ul>
+              <a href="./checkout.html?plan=cuts-limited" class="btn btn-plan">Assinar agora</a>
+            </article>
+
+            <article class="plan-card featured">
+              <div class="plan-badge">Popular</div>
+              <div class="plan-glow"></div>
+              <h3 class="plan-name">Barb Limited</h3>
+              <p class="plan-desc">Barba com limite mensal</p>
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">119</span>
+                <span class="cents">,90</span>
+                <span class="period">/mês</span>
+              </div>
+              <ul class="plan-features">
+                <li>Design de barba</li>
+                <li>Quantidade limitada/mês</li>
+                <li>Produtos premium</li>
+              </ul>
+              <a href="./checkout.html?plan=barb-limited" class="btn btn-plan">Assinar agora</a>
+            </article>
+
+            <article class="plan-card">
+              <div class="plan-glow"></div>
+              <h3 class="plan-name">Duos Limited</h3>
+              <p class="plan-desc">Corte + barba com limite mensal</p>
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">179</span>
+                <span class="cents">,90</span>
+                <span class="period">/mês</span>
+              </div>
+              <ul class="plan-features">
+                <li>Corte + barba</li>
+                <li>Quantidade limitada/mês</li>
+                <li>Melhor custo-benefício</li>
+              </ul>
+              <a href="./checkout.html?plan=duos-limited" class="btn btn-plan">Assinar agora</a>
+            </article>
+          </div>
+        </div>
+
+        <div class="plans-category reveal">
+          <div class="category-header">
+            <span class="category-badge infinite">Infinite</span>
+            <p>Visite quantas vezes quiser — sem limites</p>
+          </div>
+          <div class="plans-grid">
+            <article class="plan-card">
+              <div class="plan-glow"></div>
+              <h3 class="plan-name">Cuts Infinite</h3>
+              <p class="plan-desc">Cortes ilimitados durante o mês</p>
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">99</span>
+                <span class="cents">,90</span>
+                <span class="period">/mês</span>
+              </div>
+              <ul class="plan-features">
+                <li>Cortes ilimitados</li>
+                <li>Sem restrição de visitas</li>
+                <li>Prioridade no agendamento</li>
+              </ul>
+              <a href="./checkout.html?plan=cuts-infinite" class="btn btn-plan">Assinar agora</a>
+            </article>
+
+            <article class="plan-card featured">
+              <div class="plan-badge">Mais vendido</div>
+              <div class="plan-glow"></div>
+              <h3 class="plan-name">Barb Infinite</h3>
+              <p class="plan-desc">Barba ilimitada durante o mês</p>
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">129</span>
+                <span class="cents">,90</span>
+                <span class="period">/mês</span>
+              </div>
+              <ul class="plan-features">
+                <li>Barba ilimitada</li>
+                <li>Sem restrição de visitas</li>
+                <li>Tratamentos inclusos</li>
+              </ul>
+              <a href="./checkout.html?plan=barb-infinite" class="btn btn-plan">Assinar agora</a>
+            </article>
+
+            <article class="plan-card">
+              <div class="plan-glow"></div>
+              <h3 class="plan-name">Duos Infinite</h3>
+              <p class="plan-desc">Corte + barba ilimitados</p>
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">199</span>
+                <span class="cents">,90</span>
+                <span class="period">/mês</span>
+              </div>
+              <ul class="plan-features">
+                <li>Corte + barba ilimitados</li>
+                <li>Experiência VIP completa</li>
+                <li>Acesso total aos serviços</li>
+              </ul>
+              <a href="./checkout.html?plan=duos-infinite" class="btn btn-plan">Assinar agora</a>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="valores" class="pricing">
+      <div class="container">
+        <div class="pricing-header reveal">
+          <span class="section-tag">Tabela</span>
+          <h2 class="section-title">Valores Avulsos</h2>
+          <p class="section-desc">Sem assinatura? Passe na 2k e escolha o serviço que precisar.</p>
+        </div>
+
+        <div class="avulsos-grid reveal">
+          <article class="avulso-card">
+            <span class="avulso-tag">Avulso</span>
+            <h3 class="avulso-name">Corte</h3>
+            <div class="avulso-price">
+              <span class="currency">R$</span>
+              <span class="amount">50</span>
+              <span class="cents">,00</span>
+            </div>
+            <a href="#contato" class="btn btn-plan">Agendar</a>
+          </article>
+
+          <article class="avulso-card">
+            <span class="avulso-tag">Avulso</span>
+            <h3 class="avulso-name">Barba</h3>
+            <div class="avulso-price">
+              <span class="currency">R$</span>
+              <span class="amount">55</span>
+              <span class="cents">,00</span>
+            </div>
+            <a href="#contato" class="btn btn-plan">Agendar</a>
+          </article>
+
+          <article class="avulso-card featured">
+            <span class="avulso-tag">Combo</span>
+            <h3 class="avulso-name">Corte + Barba</h3>
+            <div class="avulso-price">
+              <span class="currency">R$</span>
+              <span class="amount">85</span>
+              <span class="cents">,00</span>
+            </div>
+            <a href="#contato" class="btn btn-plan">Agendar</a>
+          </article>
+        </div>
+
+        <div class="extras-block reveal">
+          <div class="extras-header">
+            <span class="category-badge extras">Serviço Extra</span>
+            <p>Complementos para deixar o visual ainda mais completo</p>
+          </div>
+
+          <ul class="extras-list">
+            <li class="extra-item">
+              <span class="extra-name">Sobrancelha</span>
+              <span class="extra-line"></span>
+              <span class="extra-price">R$ 10,00</span>
+            </li>
+            <li class="extra-item">
+              <span class="extra-name">Hidratação</span>
+              <span class="extra-line"></span>
+              <span class="extra-price">R$ 25,00</span>
+            </li>
+            <li class="extra-item">
+              <span class="extra-name">Limpeza de pele</span>
+              <span class="extra-line"></span>
+              <span class="extra-price">R$ 40,00</span>
+            </li>
+            <li class="extra-item">
+              <span class="extra-name">Dep. cera nariz</span>
+              <span class="extra-line"></span>
+              <span class="extra-price">R$ 15,00</span>
+            </li>
+            <li class="extra-item">
+              <span class="extra-name">Dep. cera ouvido</span>
+              <span class="extra-line"></span>
+              <span class="extra-price">R$ 15,00</span>
+            </li>
+            <li class="extra-item">
+              <span class="extra-name">Combo cera</span>
+              <span class="extra-line"></span>
+              <span class="extra-price">R$ 20,00</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="contato" class="contact">
+      <div class="container">
+        <div class="contact-box reveal">
+          <div class="contact-content">
+            <span class="section-tag">Contato</span>
+            <h2 class="section-title">Pronto para agendar?</h2>
+            <p>Entre em contato e escolha o plano ou serviço ideal para você. Resposta em até 24h.</p>
+            <div class="contact-links">
+              <a href="https://wa.me/5500000000000" class="contact-item" target="_blank" rel="noopener">
+                <span class="contact-icon">💬</span>
+                WhatsApp
+              </a>
+              <a href="mailto:contato@2kbarbearia.com" class="contact-item">
+                <span class="contact-icon">✉</span>
+                contato@2kbarbearia.com
+              </a>
+              <a href="#" class="contact-item">
+                <span class="contact-icon">📍</span>
+                São Paulo, SP
+              </a>
+            </div>
+          </div>
+          <form
+            name="contato"
+            method="POST"
+            action="/obrigado.html"
+            data-netlify="true"
+            netlify-honeypot="bot-field"
+            class="contact-form"
+          >
+            <input type="hidden" name="form-name" value="contato">
+            <p class="hidden-field" aria-hidden="true">
+              <label>Não preencha: <input name="bot-field"></label>
+            </p>
+            <div class="form-group">
+              <label for="name">Nome</label>
+              <input type="text" id="name" name="nome" placeholder="Seu nome" required>
+            </div>
+            <div class="form-group">
+              <label for="email">E-mail</label>
+              <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+            </div>
+            <div class="form-group">
+              <label for="plan">Plano ou serviço</label>
+              <select id="plan" name="plano" required>
+                <option value="">Selecione uma opção</option>
+                <optgroup label="Assinatura — Limited">
+                  <option>Cuts Limited — R$ 89,90</option>
+                  <option>Barb Limited — R$ 119,90</option>
+                  <option>Duos Limited — R$ 179,90</option>
+                </optgroup>
+                <optgroup label="Assinatura — Infinite">
+                  <option>Cuts Infinite — R$ 99,90</option>
+                  <option>Barb Infinite — R$ 129,90</option>
+                  <option>Duos Infinite — R$ 199,90</option>
+                </optgroup>
+                <optgroup label="Valores Avulsos">
+                  <option>Corte — R$ 50,00</option>
+                  <option>Barba — R$ 55,00</option>
+                  <option>Corte + Barba — R$ 85,00</option>
+                </optgroup>
+                <optgroup label="Serviço Extra">
+                  <option>Sobrancelha — R$ 10,00</option>
+                  <option>Hidratação — R$ 25,00</option>
+                  <option>Limpeza de pele — R$ 40,00</option>
+                  <option>Dep. cera nariz — R$ 15,00</option>
+                  <option>Dep. cera ouvido — R$ 15,00</option>
+                  <option>Combo cera — R$ 20,00</option>
+                </optgroup>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Enviar interesse</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <a href="#" class="logo">
+        <span class="logo-icon">✂</span>
+        <span>2k</span>
+      </a>
+      <p>&copy; 2026 2k Barbearia. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>
