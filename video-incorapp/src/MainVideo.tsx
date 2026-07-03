@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill, Sequence} from 'remotion';
+import {AbsoluteFill, Sequence, useCurrentFrame} from 'remotion';
 import {FadeWrapper} from './FadeWrapper';
 import {Scene1Opportunity} from './scenes/Scene1Opportunity';
 import {Scene2Files} from './scenes/Scene2Files';
@@ -10,7 +10,8 @@ import {Scene6Presentation} from './scenes/Scene6Presentation';
 import {Scene7Experience} from './scenes/Scene7Experience';
 import {Scene8Result} from './scenes/Scene8Result';
 import {Scene9Closing} from './scenes/Scene9Closing';
-import {FONT_FAMILY} from './theme';
+import {COLORS, FONT_FAMILY, gradientBrand} from './theme';
+import {BrandWatermark} from './components/BrandWatermark';
 
 export const SCENES = [
   {Component: Scene1Opportunity, duration: 120},
@@ -26,10 +27,35 @@ export const SCENES = [
 
 export const TOTAL_DURATION = SCENES.reduce((acc, s) => acc + s.duration, 0);
 
+const ProgressBar: React.FC = () => {
+  const frame = useCurrentFrame();
+  const pct = Math.min(100, (frame / TOTAL_DURATION) * 100);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: 5,
+        background: COLORS.border,
+      }}
+    >
+      <div
+        style={{
+          width: `${pct}%`,
+          height: '100%',
+          background: gradientBrand(90),
+        }}
+      />
+    </div>
+  );
+};
+
 export const MainVideo: React.FC = () => {
   let cursor = 0;
   return (
-    <AbsoluteFill style={{background: '#150c2c', fontFamily: FONT_FAMILY}}>
+    <AbsoluteFill style={{background: COLORS.white, fontFamily: FONT_FAMILY}}>
       {SCENES.map(({Component, duration}, i) => {
         const from = cursor;
         cursor += duration;
@@ -41,6 +67,8 @@ export const MainVideo: React.FC = () => {
           </Sequence>
         );
       })}
+      <BrandWatermark />
+      <ProgressBar />
     </AbsoluteFill>
   );
 };

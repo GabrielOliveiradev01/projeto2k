@@ -30,6 +30,15 @@ export const Skyline: React.FC<{
 }> = ({highlightIndex = 3, width = 1400, height = 500, groundY = 470}) => {
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <defs>
+        <filter id="buildingShadow" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="10" stdDeviation="14" floodColor="#1B1330" floodOpacity="0.18" />
+        </filter>
+        <linearGradient id="highlightFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={COLORS.orangeLight} />
+          <stop offset="100%" stopColor={COLORS.orange} />
+        </linearGradient>
+      </defs>
       {BUILDINGS.map((b, i) => {
         const isHighlight = i === highlightIndex;
         const y = groundY - b.h;
@@ -38,7 +47,6 @@ export const Skyline: React.FC<{
         const windows = [];
         for (let r = 0; r < windowRows; r++) {
           for (let c = 0; c < windowCols; c++) {
-            const lit = (r * windowCols + c + i * 7) % 5 === 0;
             windows.push(
               <rect
                 key={`${r}-${c}`}
@@ -46,27 +54,25 @@ export const Skyline: React.FC<{
                 y={y + 14 + r * 24}
                 width={(b.w - 16) / windowCols - 6}
                 height={12}
-                fill={
-                  lit
-                    ? isHighlight
-                      ? 'rgba(255,255,255,0.9)'
-                      : COLORS.orangeLight
-                    : 'rgba(255,255,255,0.08)'
-                }
+                rx={1.5}
+                fill={isHighlight ? 'rgba(255,255,255,0.55)' : COLORS.purple}
+                opacity={isHighlight ? 1 : 0.35}
               />,
             );
           }
         }
         return (
-          <g key={i}>
+          <g key={i} filter="url(#buildingShadow)">
             <rect
               x={b.x}
               y={y}
               width={b.w}
               height={b.h}
-              fill={isHighlight ? COLORS.orange : '#2A2050'}
-              stroke={isHighlight ? COLORS.orangeLight : 'rgba(255,255,255,0.05)'}
-              strokeWidth={isHighlight ? 2 : 1}
+              rx={3}
+              fill={isHighlight ? 'url(#highlightFill)' : COLORS.white}
+              stroke={isHighlight ? COLORS.orange : COLORS.purple}
+              strokeWidth={isHighlight ? 2 : 1.5}
+              strokeOpacity={isHighlight ? 1 : 0.4}
             />
             {windows}
           </g>

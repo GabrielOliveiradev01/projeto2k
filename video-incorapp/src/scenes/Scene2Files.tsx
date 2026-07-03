@@ -1,16 +1,17 @@
 import React from 'react';
 import {AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
-import {COLORS, gradientBg} from '../theme';
-import {AnimatedWord} from '../components/AnimatedText';
+import {COLORS, gradientBg, gradientBrand, SHADOW_MD} from '../theme';
+import {SceneHeadline} from '../components/SceneHeadline';
+import {DotGrid} from '../components/BrandWatermark';
 import {IconBlueprint, IconDoc, IconImage, IconVideo} from '../components/Icons';
 
 const FILES = [
-  {Icon: IconBlueprint, label: 'Plantas', fromX: -560, fromY: -220, rot: -18},
-  {Icon: IconImage, label: 'Fotos', fromX: 540, fromY: -260, rot: 14},
-  {Icon: IconVideo, label: 'Vídeos', fromX: -580, fromY: 240, rot: 12},
-  {Icon: IconDoc, label: 'Documentos', fromX: 560, fromY: 260, rot: -16},
-  {Icon: IconBlueprint, label: 'Renders', fromX: 0, fromY: -340, rot: 6},
-  {Icon: IconDoc, label: 'Memorial', fromX: 0, fromY: 340, rot: -6},
+  {Icon: IconBlueprint, label: 'Plantas', fromX: -560, fromY: -200, rot: -18},
+  {Icon: IconImage, label: 'Fotos', fromX: 540, fromY: -240, rot: 14},
+  {Icon: IconVideo, label: 'Vídeos', fromX: -580, fromY: 220, rot: 12},
+  {Icon: IconDoc, label: 'Documentos', fromX: 560, fromY: 240, rot: -16},
+  {Icon: IconBlueprint, label: 'Renders', fromX: 0, fromY: -320, rot: 6},
+  {Icon: IconDoc, label: 'Memorial', fromX: 0, fromY: 320, rot: -6},
 ];
 
 export const Scene2Files: React.FC = () => {
@@ -20,17 +21,29 @@ export const Scene2Files: React.FC = () => {
   const hubScale = spring({frame: frame - 70, fps, config: {damping: 12}});
 
   return (
-    <AbsoluteFill style={{background: gradientBg(135, COLORS.purpleDeep, COLORS.purpleDark)}}>
-      <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center'}}>
+    <AbsoluteFill style={{background: gradientBg(135, COLORS.white, COLORS.offWhite)}}>
+      <DotGrid opacity={0.35} />
+      <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center', paddingBottom: 90}}>
         <div
           style={{
             position: 'absolute',
-            width: 90,
-            height: 90,
+            width: 120,
+            height: 120,
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${COLORS.orange}, transparent 70%)`,
-            opacity: 0.9,
-            transform: `scale(${1 + hubScale * 1.4})`,
+            border: `2px dashed ${COLORS.purple}55`,
+            transform: `scale(${1 + hubScale * 1.6})`,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            width: 74,
+            height: 74,
+            borderRadius: '50%',
+            background: gradientBrand(135),
+            boxShadow: SHADOW_MD,
+            opacity: 0.95,
+            transform: `scale(${1 + hubScale * 0.5})`,
           }}
         />
         {FILES.map((f, i) => {
@@ -56,40 +69,46 @@ export const Scene2Files: React.FC = () => {
                 position: 'absolute',
                 transform: `translate(${x}px, ${y}px) rotate(${rotate}deg) scale(${scale})`,
                 opacity,
-                width: 120,
-                height: 90,
-                borderRadius: 14,
-                background: 'rgba(255,255,255,0.08)',
-                border: `1px solid ${COLORS.orangeLight}55`,
-                backdropFilter: 'blur(4px)',
+                width: 128,
+                height: 96,
+                borderRadius: 16,
+                background: COLORS.white,
+                border: `1px solid ${COLORS.border}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
-                boxShadow: '0 20px 40px rgba(0,0,0,0.35)',
+                gap: 8,
+                boxShadow: SHADOW_MD,
               }}
             >
-              <f.Icon size={32} color={COLORS.white} />
-              <span style={{color: COLORS.white, fontSize: 13, fontWeight: 600, fontFamily: 'inherit'}}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: gradientBrand(135),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <f.Icon size={20} color={COLORS.white} />
+              </div>
+              <span style={{color: COLORS.ink, fontSize: 13, fontWeight: 700, fontFamily: 'inherit'}}>
                 {f.label}
               </span>
             </div>
           );
         })}
       </AbsoluteFill>
-      <AbsoluteFill style={{alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 110}}>
-        <AnimatedWord
-          text="Você envia todo o material do empreendimento."
+      <AbsoluteFill style={{alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 96}}>
+        <SceneHeadline
+          eyebrow="Passo 01"
+          title="Você envia todo o material do empreendimento."
+          subtitle="Plantas, renders, fotos, vídeos e documentos — tudo em um só envio."
           delay={14}
-          style={{
-            color: COLORS.white,
-            fontSize: 46,
-            fontWeight: 700,
-            maxWidth: 1000,
-            textAlign: 'center',
-            textShadow: '0 6px 30px rgba(0,0,0,0.5)',
-          }}
+          maxWidth={1050}
         />
       </AbsoluteFill>
     </AbsoluteFill>

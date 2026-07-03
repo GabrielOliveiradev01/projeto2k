@@ -17,7 +17,7 @@ export const Logo: React.FC<{scale?: number; style?: React.CSSProperties}> = ({
         ...style,
       }}
     >
-      <span style={{color: COLORS.white}}>Incor</span>
+      <span style={{color: COLORS.ink}}>Incor</span>
       <span style={{color: COLORS.orange}}>App</span>
     </div>
   );

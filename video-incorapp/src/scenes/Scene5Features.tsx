@@ -1,6 +1,8 @@
 import React from 'react';
 import {AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
-import {COLORS, gradientBg} from '../theme';
+import {COLORS, FONT_FAMILY, gradientBg, gradientBrand, SHADOW_MD} from '../theme';
+import {DotGrid} from '../components/BrandWatermark';
+import {AnimatedText} from '../components/AnimatedText';
 import {
   IconBlueprint,
   IconDoc,
@@ -13,49 +15,61 @@ import {
 } from '../components/Icons';
 
 const FEATURES = [
-  {Icon: IconBlueprint, label: 'Plantas Humanizadas'},
-  {Icon: IconStar, label: 'Perspectivas 3D'},
-  {Icon: IconImage, label: 'Galeria de Imagens'},
-  {Icon: IconVideo, label: 'Vídeos'},
-  {Icon: IconMap, label: 'Localização'},
-  {Icon: IconGear, label: 'Diferenciais'},
-  {Icon: IconMemo, label: 'Memorial Descritivo'},
-  {Icon: IconDoc, label: 'Informações Técnicas'},
+  {Icon: IconBlueprint, label: 'Plantas Humanizadas', desc: 'Visualização realista dos ambientes'},
+  {Icon: IconStar, label: 'Perspectivas 3D', desc: 'Renderizações que encantam'},
+  {Icon: IconImage, label: 'Galeria de Imagens', desc: 'Fotos em alta qualidade'},
+  {Icon: IconVideo, label: 'Vídeos', desc: 'Tour completo do empreendimento'},
+  {Icon: IconMap, label: 'Localização', desc: 'Mapa interativo da região'},
+  {Icon: IconGear, label: 'Diferenciais', desc: 'O que torna o projeto único'},
+  {Icon: IconMemo, label: 'Memorial Descritivo', desc: 'Especificações técnicas completas'},
+  {Icon: IconDoc, label: 'Informações Técnicas', desc: 'Dados essenciais em um clique'},
 ];
 
 export const Scene5Features: React.FC = () => {
   const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
-
-  const titleOpacity = interpolate(frame, [0, 12], [0, 1], {extrapolateRight: 'clamp'});
 
   return (
-    <AbsoluteFill style={{background: gradientBg(135, COLORS.purpleDeep, COLORS.purpleDark)}}>
-      <AbsoluteFill style={{alignItems: 'center', paddingTop: 90}}>
-        <div
+    <AbsoluteFill style={{background: gradientBg(135, COLORS.white, COLORS.offWhite)}}>
+      <DotGrid opacity={0.3} />
+      <AbsoluteFill style={{alignItems: 'center', paddingTop: 80}}>
+        <AnimatedText
+          delay={0}
+          rise={14}
           style={{
-            fontFamily: 'inherit',
-            color: COLORS.white,
-            fontSize: 38,
+            color: COLORS.orange,
+            fontSize: 17,
             fontWeight: 700,
-            opacity: titleOpacity,
-            marginBottom: 44,
+            letterSpacing: 3,
+            textTransform: 'uppercase',
+            marginBottom: 10,
           }}
         >
           Tudo em um só lugar
-        </div>
+        </AnimatedText>
+        <AnimatedText
+          delay={4}
+          rise={18}
+          style={{
+            color: COLORS.ink,
+            fontSize: 38,
+            fontWeight: 800,
+            marginBottom: 40,
+          }}
+        >
+          Recursos completos para o seu lançamento
+        </AnimatedText>
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 240px)',
-            gridTemplateRows: 'repeat(2, 150px)',
+            gridTemplateColumns: 'repeat(4, 250px)',
+            gridTemplateRows: 'repeat(2, 176px)',
             gap: 22,
           }}
         >
           {FEATURES.map((f, i) => {
             const delay = 10 + i * 16;
             const local = frame - delay;
-            const s = spring({frame: local, fps, config: {damping: 13, stiffness: 160}});
+            const s = spring({frame: local, fps: 30, config: {damping: 13, stiffness: 160}});
             const scale = interpolate(s, [0, 1], [0.4, 1]);
             const opacity = interpolate(local, [0, 10], [0, 1], {
               extrapolateLeft: 'clamp',
@@ -72,39 +86,54 @@ export const Scene5Features: React.FC = () => {
                   transform: `scale(${scale})`,
                   opacity,
                   borderRadius: 18,
-                  background: 'rgba(255,255,255,0.07)',
-                  border: `1.5px solid rgba(255,255,255,${0.12 + glow * 0.3})`,
-                  boxShadow: `0 20px 40px rgba(0,0,0,0.3), 0 0 ${glow * 40}px rgba(240,97,28,${glow * 0.6})`,
+                  background: COLORS.white,
+                  border: `1.5px solid ${COLORS.border}`,
+                  boxShadow: `${SHADOW_MD}, 0 0 ${glow * 36}px rgba(240,97,28,${glow * 0.35})`,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 12,
+                  gap: 10,
+                  padding: '0 16px',
                 }}
               >
                 <div
                   style={{
-                    width: 56,
-                    height: 56,
+                    width: 54,
+                    height: 54,
                     borderRadius: 14,
-                    background: `linear-gradient(135deg, ${COLORS.purple}, ${COLORS.orange})`,
+                    background: gradientBrand(135),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <f.Icon size={28} color={COLORS.white} />
+                  <f.Icon size={27} color={COLORS.white} />
                 </div>
                 <span
                   style={{
-                    color: COLORS.white,
+                    color: COLORS.ink,
                     fontSize: 16,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     textAlign: 'center',
-                    maxWidth: 190,
+                    maxWidth: 200,
+                    fontFamily: FONT_FAMILY,
                   }}
                 >
                   {f.label}
+                </span>
+                <span
+                  style={{
+                    color: COLORS.inkSoft,
+                    fontSize: 12.5,
+                    fontWeight: 500,
+                    textAlign: 'center',
+                    maxWidth: 195,
+                    lineHeight: 1.35,
+                    fontFamily: FONT_FAMILY,
+                  }}
+                >
+                  {f.desc}
                 </span>
               </div>
             );
