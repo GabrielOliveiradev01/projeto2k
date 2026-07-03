@@ -12,6 +12,7 @@ import {Scene8Result} from './scenes/Scene8Result';
 import {Scene9Closing} from './scenes/Scene9Closing';
 import {COLORS, FONT_FAMILY, gradientBrand} from './theme';
 import {BrandWatermark} from './components/BrandWatermark';
+import {FontStyles} from './fonts';
 
 export const SCENES = [
   {Component: Scene1Opportunity, duration: 120},
@@ -56,6 +57,7 @@ export const MainVideo: React.FC = () => {
   let cursor = 0;
   return (
     <AbsoluteFill style={{background: COLORS.white, fontFamily: FONT_FAMILY}}>
+      <FontStyles />
       {SCENES.map(({Component, duration}, i) => {
         const from = cursor;
         cursor += duration;

@@ -1,4 +1,4 @@
-import {loadFont} from '@remotion/fonts';
+import React from 'react';
 import {
   ArchivoBlack_Regular_ttf,
   Poppins_Bold_ttf,
@@ -10,37 +10,42 @@ import {
 export const DISPLAY_FONT = 'Archivo Black';
 export const BODY_FONT = 'Poppins';
 
-loadFont({
-  family: DISPLAY_FONT,
-  url: ArchivoBlack_Regular_ttf,
-  weight: '900',
-  format: 'truetype',
-});
+const css = `
+@font-face {
+  font-family: '${DISPLAY_FONT}';
+  src: url('${ArchivoBlack_Regular_ttf}') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: '${BODY_FONT}';
+  src: url('${Poppins_Medium_ttf}') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: '${BODY_FONT}';
+  src: url('${Poppins_SemiBold_ttf}') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: '${BODY_FONT}';
+  src: url('${Poppins_Bold_ttf}') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: '${BODY_FONT}';
+  src: url('${Poppins_ExtraBold_ttf}') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: block;
+}
+`;
 
-loadFont({
-  family: BODY_FONT,
-  url: Poppins_Medium_ttf,
-  weight: '500',
-  format: 'truetype',
-});
-
-loadFont({
-  family: BODY_FONT,
-  url: Poppins_SemiBold_ttf,
-  weight: '600',
-  format: 'truetype',
-});
-
-loadFont({
-  family: BODY_FONT,
-  url: Poppins_Bold_ttf,
-  weight: '700',
-  format: 'truetype',
-});
-
-loadFont({
-  family: BODY_FONT,
-  url: Poppins_ExtraBold_ttf,
-  weight: '800',
-  format: 'truetype',
-});
+export const FontStyles: React.FC = () => React.createElement('style', {dangerouslySetInnerHTML: {__html: css}});
