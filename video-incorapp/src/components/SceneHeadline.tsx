@@ -1,6 +1,6 @@
 import React from 'react';
-import {COLORS, FONT_FAMILY} from '../theme';
-import {AnimatedText, AnimatedWord} from './AnimatedText';
+import {COLORS, DISPLAY_FONT} from '../theme';
+import {AnimatedText, AnimatedWord, BODY_FONT_FAMILY} from './AnimatedText';
 
 export const SceneHeadline: React.FC<{
   eyebrow?: string;
@@ -9,14 +9,14 @@ export const SceneHeadline: React.FC<{
   delay?: number;
   align?: 'center' | 'left';
   maxWidth?: number;
-}> = ({eyebrow, title, subtitle, delay = 14, align = 'center', maxWidth = 1050}) => {
+}> = ({eyebrow, title, subtitle, delay = 14, align = 'center', maxWidth = 1100}) => {
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: align === 'center' ? 'center' : 'flex-start',
-        gap: 12,
+        gap: 14,
         maxWidth,
       }}
     >
@@ -30,6 +30,7 @@ export const SceneHeadline: React.FC<{
             fontWeight: 700,
             letterSpacing: 3,
             textTransform: 'uppercase',
+            fontFamily: BODY_FONT_FAMILY,
           }}
         >
           {eyebrow}
@@ -40,16 +41,18 @@ export const SceneHeadline: React.FC<{
         delay={delay + (eyebrow ? 6 : 0)}
         style={{
           color: COLORS.ink,
-          fontSize: 44,
-          fontWeight: 800,
+          fontSize: 46,
+          fontWeight: 400,
           textAlign: align,
           justifyContent: align === 'center' ? 'center' : 'flex-start',
-          lineHeight: 1.15,
+          lineHeight: 1.12,
+          letterSpacing: -0.5,
+          fontFamily: `"${DISPLAY_FONT}", sans-serif`,
         }}
       />
       {subtitle ? (
         <AnimatedText
-          delay={delay + (eyebrow ? 16 : 10)}
+          delay={delay + (eyebrow ? 18 : 12)}
           rise={16}
           style={{
             color: COLORS.inkSoft,
@@ -57,7 +60,7 @@ export const SceneHeadline: React.FC<{
             fontWeight: 500,
             textAlign: align,
             lineHeight: 1.5,
-            fontFamily: FONT_FAMILY,
+            fontFamily: BODY_FONT_FAMILY,
           }}
         >
           {subtitle}

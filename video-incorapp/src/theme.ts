@@ -17,8 +17,8 @@ export const COLORS = {
 
 export const FPS = 30;
 
-export const FONT_FAMILY =
-  '"Liberation Sans", "Helvetica Neue", Arial, sans-serif';
+export {DISPLAY_FONT, BODY_FONT} from './fonts';
+export const FONT_FAMILY = '"Poppins", "Liberation Sans", Arial, sans-serif';
 
 export const gradientBg = (
   angle = 135,

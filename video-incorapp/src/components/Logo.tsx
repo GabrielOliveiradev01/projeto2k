@@ -1,5 +1,5 @@
 import React from 'react';
-import {COLORS, FONT_FAMILY} from '../theme';
+import {COLORS, DISPLAY_FONT} from '../theme';
 
 export const Logo: React.FC<{scale?: number; style?: React.CSSProperties}> = ({
   scale = 1,
@@ -10,9 +10,9 @@ export const Logo: React.FC<{scale?: number; style?: React.CSSProperties}> = ({
       style={{
         display: 'flex',
         alignItems: 'center',
-        fontFamily: FONT_FAMILY,
-        fontWeight: 800,
-        fontSize: 96 * scale,
+        fontFamily: `"${DISPLAY_FONT}", sans-serif`,
+        fontWeight: 400,
+        fontSize: 92 * scale,
         letterSpacing: -1,
         ...style,
       }}

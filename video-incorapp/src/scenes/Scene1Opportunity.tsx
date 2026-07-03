@@ -4,6 +4,7 @@ import {COLORS, gradientBg} from '../theme';
 import {Skyline} from '../components/Skyline';
 import {SceneHeadline} from '../components/SceneHeadline';
 import {DotGrid} from '../components/BrandWatermark';
+import {GhostWordBackdrop} from '../components/AnimatedText';
 
 export const Scene1Opportunity: React.FC = () => {
   const frame = useCurrentFrame();
@@ -20,6 +21,7 @@ export const Scene1Opportunity: React.FC = () => {
   return (
     <AbsoluteFill style={{background: gradientBg(160, COLORS.white, COLORS.offWhite)}}>
       <DotGrid opacity={0.35} />
+      <GhostWordBackdrop word="INCORAPP" color={COLORS.purple} opacity={0.05} />
       <div
         style={{
           position: 'absolute',

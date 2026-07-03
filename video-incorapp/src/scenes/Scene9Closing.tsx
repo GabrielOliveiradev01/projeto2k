@@ -1,7 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import {COLORS, FONT_FAMILY, gradientBg} from '../theme';
-import {AnimatedText} from '../components/AnimatedText';
+import {AnimatedText, GhostWordBackdrop} from '../components/AnimatedText';
 import {DotGrid} from '../components/BrandWatermark';
 import {Logo} from '../components/Logo';
 import {IconBuilding} from '../components/Icons';
@@ -26,9 +26,10 @@ export const Scene9Closing: React.FC = () => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
 
-  const logoS = spring({frame, fps, config: {damping: 13, stiffness: 110}});
-  const logoScale = interpolate(logoS, [0, 1], [0.6, 1]);
+  const logoS = spring({frame, fps, config: {damping: 10, stiffness: 200, mass: 0.8}});
+  const logoScale = interpolate(logoS, [0, 0.6, 1], [0.3, 1.15, 1]);
   const logoOpacity = interpolate(frame, [0, 15], [0, 1], {extrapolateRight: 'clamp'});
+  const logoBlur = interpolate(frame, [0, 10], [12, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
   const glow = interpolate(frame, [0, 40], [0, 1], {extrapolateRight: 'clamp'});
 
   return (
@@ -40,6 +41,7 @@ export const Scene9Closing: React.FC = () => {
       }}
     >
       <DotGrid opacity={0.35} />
+      <GhostWordBackdrop word="INCORAPP" color={COLORS.orange} opacity={0.045} />
       <div
         style={{
           position: 'absolute',
@@ -77,7 +79,13 @@ export const Scene9Closing: React.FC = () => {
           <IconBuilding size={18} color={COLORS.orange} />
           Apresentações imobiliárias digitais
         </div>
-        <div style={{transform: `scale(${logoScale})`, opacity: logoOpacity}}>
+        <div
+          style={{
+            transform: `scale(${logoScale})`,
+            opacity: logoOpacity,
+            filter: logoBlur > 0.1 ? `blur(${logoBlur}px)` : undefined,
+          }}
+        >
           <Logo />
         </div>
         <AnimatedText
