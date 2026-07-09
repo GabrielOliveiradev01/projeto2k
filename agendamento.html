@@ -42,16 +42,37 @@
           <span class="section-tag">Agendamento</span>
           <h1 class="section-title">Reserve seu horário</h1>
           <p class="section-desc">
-            Informe seu CPF para verificar a assinatura. Com plano ativo, escolha o barbeiro e o melhor horário.
+            Assinantes agendam pelo plano. Sem assinatura? Reserve com os valores avulsos.
           </p>
         </div>
 
         <div class="booking-layout">
-          <!-- Passo 1: CPF -->
-          <div class="booking-step" id="step-cpf">
+          <!-- Passo 0: Tipo -->
+          <div class="booking-step" id="step-start">
+            <div class="booking-card">
+              <h2>Como deseja agendar?</h2>
+              <p class="booking-card-desc">Escolha se você tem assinatura ativa ou prefere um serviço avulso.</p>
+
+              <div class="mode-grid">
+                <button type="button" class="mode-card" id="mode-subscription">
+                  <span class="mode-card-badge">Assinatura</span>
+                  <strong>Tenho plano ativo</strong>
+                  <p>Agende com seu CPF e use os benefícios da assinatura.</p>
+                </button>
+                <button type="button" class="mode-card" id="mode-avulso">
+                  <span class="mode-card-badge avulso">Avulso</span>
+                  <strong>Sem assinatura</strong>
+                  <p>Corte, barba ou combo com pagamento no dia do atendimento.</p>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Passo 1: CPF assinante -->
+          <div class="booking-step" id="step-cpf" hidden>
             <div class="booking-card">
               <h2>Verificar assinatura</h2>
-              <p class="booking-card-desc">O agendamento online é exclusivo para assinantes ativos.</p>
+              <p class="booking-card-desc">Informe seu CPF para confirmar o plano ativo.</p>
 
               <div class="booking-error" id="booking-error" role="alert" hidden></div>
 
@@ -75,8 +96,125 @@
 
               <p class="booking-hint">
                 Ainda não é assinante?
-                <a href="./checkout.html">Assine um plano</a>
+                <button type="button" class="booking-link-btn" id="go-avulso-from-cpf">Agendar como avulso</button>
+                ou <a href="./checkout.html">assine um plano</a>
               </p>
+
+              <button type="button" class="btn btn-outline btn-full booking-back" id="back-from-cpf">
+                Voltar
+              </button>
+            </div>
+          </div>
+
+          <!-- Passo 1b: Dados avulso -->
+          <div class="booking-step" id="step-avulso" hidden>
+            <div class="booking-card">
+              <h2>Agendamento avulso</h2>
+              <p class="booking-card-desc">Preencha seus dados e escolha o serviço. Pagamento na barbearia.</p>
+
+              <div class="booking-error" id="avulso-error" role="alert" hidden></div>
+
+              <form id="avulso-form" class="booking-form" novalidate>
+                <div class="form-group">
+                  <label for="avulso-name">Nome completo</label>
+                  <input type="text" id="avulso-name" placeholder="Seu nome" required autocomplete="name">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="avulso-cpf">CPF</label>
+                    <input type="text" id="avulso-cpf" placeholder="000.000.000-00" required inputmode="numeric" maxlength="14">
+                  </div>
+                  <div class="form-group">
+                    <label for="avulso-phone">Telefone</label>
+                    <input type="tel" id="avulso-phone" placeholder="(11) 99999-9999" required maxlength="15">
+                  </div>
+                </div>
+
+                <fieldset class="booking-fieldset">
+                  <legend>Escolha o serviço</legend>
+                  <div class="service-grid" role="radiogroup" aria-label="Serviços avulsos">
+                    <label class="service-card">
+                      <input type="radio" name="service" value="corte" required>
+                      <span class="service-card-inner">
+                        <span class="service-name">Corte</span>
+                        <span class="service-price">R$ 50,00</span>
+                      </span>
+                    </label>
+                    <label class="service-card">
+                      <input type="radio" name="service" value="barba" required>
+                      <span class="service-card-inner">
+                        <span class="service-name">Barba</span>
+                        <span class="service-price">R$ 55,00</span>
+                      </span>
+                    </label>
+                    <label class="service-card">
+                      <input type="radio" name="service" value="corte-barba" required>
+                      <span class="service-card-inner">
+                        <span class="service-name">Corte + Barba</span>
+                        <span class="service-price">R$ 85,00</span>
+                      </span>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="booking-fieldset">
+                  <legend>Serviços extra <span class="legend-optional">(opcional)</span></legend>
+                  <p class="booking-field-hint">Adicione complementos ao seu atendimento.</p>
+                  <div class="extras-grid" id="extras-grid">
+                    <label class="extra-card">
+                      <input type="checkbox" name="extra" value="sobrancelha">
+                      <span class="extra-card-inner">
+                        <span class="service-name">Sobrancelha</span>
+                        <span class="service-price">+ R$ 10,00</span>
+                      </span>
+                    </label>
+                    <label class="extra-card">
+                      <input type="checkbox" name="extra" value="hidratacao">
+                      <span class="extra-card-inner">
+                        <span class="service-name">Hidratação</span>
+                        <span class="service-price">+ R$ 25,00</span>
+                      </span>
+                    </label>
+                    <label class="extra-card">
+                      <input type="checkbox" name="extra" value="limpeza-pele">
+                      <span class="extra-card-inner">
+                        <span class="service-name">Limpeza de pele</span>
+                        <span class="service-price">+ R$ 40,00</span>
+                      </span>
+                    </label>
+                    <label class="extra-card">
+                      <input type="checkbox" name="extra" value="dep-cera-nariz">
+                      <span class="extra-card-inner">
+                        <span class="service-name">Dep. cera nariz</span>
+                        <span class="service-price">+ R$ 15,00</span>
+                      </span>
+                    </label>
+                    <label class="extra-card">
+                      <input type="checkbox" name="extra" value="dep-cera-ouvido">
+                      <span class="extra-card-inner">
+                        <span class="service-name">Dep. cera ouvido</span>
+                        <span class="service-price">+ R$ 15,00</span>
+                      </span>
+                    </label>
+                    <label class="extra-card">
+                      <input type="checkbox" name="extra" value="combo-cera">
+                      <span class="extra-card-inner">
+                        <span class="service-name">Combo cera</span>
+                        <span class="service-price">+ R$ 20,00</span>
+                      </span>
+                    </label>
+                  </div>
+                  <p class="avulso-total" id="avulso-total" hidden></p>
+                </fieldset>
+
+                <button type="submit" class="btn btn-primary btn-full" id="avulso-submit">
+                  Continuar para horários
+                </button>
+              </form>
+
+              <button type="button" class="btn btn-outline btn-full booking-back" id="back-from-avulso">
+                Voltar
+              </button>
             </div>
           </div>
 
@@ -114,7 +252,7 @@
 
                 <fieldset class="booking-fieldset" id="time-fieldset" hidden>
                   <legend>Escolha o horário</legend>
-                  <p class="booking-slots-hint" id="slots-hint">Horários das 9h às 18h, com intervalo de 1h30 entre cada atendimento.</p>
+                  <p class="booking-slots-hint" id="slots-hint">Horários das 9h às 18h, com intervalo de 40 minutos entre cada atendimento.</p>
                   <div class="time-grid" id="time-grid" role="radiogroup" aria-label="Horários disponíveis"></div>
                 </fieldset>
 
@@ -124,7 +262,7 @@
               </form>
 
               <button type="button" class="btn btn-outline btn-full booking-back" id="booking-back">
-                Trocar CPF
+                Voltar ao início
               </button>
             </div>
           </div>

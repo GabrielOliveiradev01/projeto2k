@@ -61,6 +61,92 @@ async function findCustomerByCpf(cpf, apiKey) {
   return data.data?.[0] || null;
 }
 
+async function fetchCustomerById(customerId, apiKey) {
+  const { response, data } = await asaasRequest(
+    `/customers/${customerId}`,
+    { method: 'GET' },
+    apiKey
+  );
+
+  if (!response.ok) {
+    throw new Error(getAsaasError(data));
+  }
+
+  return data;
+}
+
+async function fetchAllPaginated(path, apiKey, maxItems = 500) {
+  const all = [];
+  let offset = 0;
+  const limit = 100;
+
+  while (all.length < maxItems) {
+    const { response, data } = await asaasRequest(
+      `${path}${path.includes('?') ? '&' : '?'}limit=${limit}&offset=${offset}`,
+      { method: 'GET' },
+      apiKey
+    );
+
+    if (!response.ok) {
+      throw new Error(getAsaasError(data));
+    }
+
+    const items = data.data || [];
+    all.push(...items);
+    if (items.length < limit) break;
+    offset += limit;
+  }
+
+  return all;
+}
+
+function pickBestSubscription(subscriptions) {
+  if (!subscriptions.length) return null;
+  const active = subscriptions.find((item) => item.status === 'ACTIVE');
+  if (active) return active;
+  return subscriptions.sort((a, b) => {
+    const dateA = new Date(a.dateCreated || a.createdAt || 0).getTime();
+    const dateB = new Date(b.dateCreated || b.createdAt || 0).getTime();
+    return dateB - dateA;
+  })[0];
+}
+
+async function listAdminSubscribers(apiKey) {
+  const [customers, subscriptions] = await Promise.all([
+    fetchAllPaginated('/customers', apiKey),
+    fetchAllPaginated('/subscriptions', apiKey),
+  ]);
+
+  const subsByCustomer = new Map();
+  for (const sub of subscriptions) {
+    const list = subsByCustomer.get(sub.customer) || [];
+    list.push(sub);
+    subsByCustomer.set(sub.customer, list);
+  }
+
+  return customers
+    .map((customer) => {
+      const customerSubs = subsByCustomer.get(customer.id) || [];
+      const subscription = pickBestSubscription(customerSubs);
+      const plan = parsePlanFromDescription(subscription?.description);
+
+      return {
+        customerId: customer.id,
+        name: customer.name,
+        cpf: customer.cpfCnpj,
+        email: customer.email || '',
+        phone: customer.mobilePhone || customer.phone || '',
+        subscriptionId: subscription?.id || null,
+        status: subscription?.status || 'NONE',
+        planName: plan.planName,
+        planType: plan.type,
+        value: subscription?.value || null,
+        nextDueDate: subscription?.nextDueDate || null,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
+
 function parsePlanFromDescription(description) {
   const text = String(description || '');
   for (const [planId, planName] of Object.entries(PLAN_NAMES)) {
@@ -120,6 +206,10 @@ module.exports = {
   onlyDigits,
   getAsaasError,
   asaasRequest,
+  fetchAllPaginated,
   findCustomerByCpf,
+  fetchCustomerById,
+  listAdminSubscribers,
   getSubscriptionByCpf,
+  parsePlanFromDescription,
 };

@@ -1,5 +1,5 @@
 require('./lib/load-env');
-const { jsonResponse } = require('./lib/asaas');
+const { jsonResponse, onlyDigits } = require('./lib/asaas');
 const { getSupabaseAdmin } = require('./lib/supabase');
 
 function getAdminSecret() {
@@ -40,6 +40,7 @@ async function handleList(event) {
   const status = params.status || 'confirmed';
   const from = params.from || '';
   const to = params.to || '';
+  const cpf = onlyDigits(params.cpf || '');
 
   const supabase = getSupabaseAdmin();
   let query = supabase
@@ -54,6 +55,10 @@ async function handleList(event) {
 
   if (barberId) {
     query = query.eq('barber_id', barberId);
+  }
+
+  if (cpf) {
+    query = query.eq('cpf', cpf);
   }
 
   if (from) {

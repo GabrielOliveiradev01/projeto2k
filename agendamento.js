@@ -34,15 +34,23 @@ window.addEventListener('resize', () => {
   if (window.innerWidth > 768) closeMenu();
 });
 
+const stepStart = document.getElementById('step-start');
 const stepCpf = document.getElementById('step-cpf');
+const stepAvulso = document.getElementById('step-avulso');
 const stepSchedule = document.getElementById('step-schedule');
 const stepSuccess = document.getElementById('step-success');
 const cpfForm = document.getElementById('cpf-form');
+const avulsoForm = document.getElementById('avulso-form');
 const scheduleForm = document.getElementById('schedule-form');
 const cpfInput = document.getElementById('booking-cpf');
+const avulsoCpfInput = document.getElementById('avulso-cpf');
+const avulsoPhoneInput = document.getElementById('avulso-phone');
 const cpfSubmit = document.getElementById('cpf-submit');
+const avulsoSubmit = document.getElementById('avulso-submit');
+const avulsoTotal = document.getElementById('avulso-total');
 const scheduleSubmit = document.getElementById('schedule-submit');
 const bookingError = document.getElementById('booking-error');
+const avulsoError = document.getElementById('avulso-error');
 const bookingWelcome = document.getElementById('booking-welcome');
 const dateGrid = document.getElementById('date-grid');
 const dateHint = document.getElementById('date-hint');
@@ -57,7 +65,28 @@ const MAX_DAYS_AHEAD = 30;
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
+const AVULSO_SERVICES = {
+  corte: { name: 'Corte', price: 50, label: 'R$ 50,00' },
+  barba: { name: 'Barba', price: 55, label: 'R$ 55,00' },
+  'corte-barba': { name: 'Corte + Barba', price: 85, label: 'R$ 85,00' },
+};
+
+const EXTRA_SERVICES = {
+  sobrancelha: { name: 'Sobrancelha', price: 10 },
+  hidratacao: { name: 'Hidratação', price: 25 },
+  'limpeza-pele': { name: 'Limpeza de pele', price: 40 },
+  'dep-cera-nariz': { name: 'Dep. cera nariz', price: 15 },
+  'dep-cera-ouvido': { name: 'Dep. cera ouvido', price: 15 },
+  'combo-cera': { name: 'Combo cera', price: 20 },
+};
+
+let bookingMode = '';
 let verifiedCpf = '';
+let customerName = '';
+let planLabel = '';
+let serviceId = '';
+let selectedExtraIds = [];
+let customerPhone = '';
 let selectedDate = '';
 let selectedTime = '';
 
@@ -69,14 +98,61 @@ function formatCpf(value) {
     .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
 }
 
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 10) {
+    return digits
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{4})(\d)/, '$1-$2');
+  }
+  return digits
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2');
+}
+
 function onlyDigits(value) {
   return String(value || '').replace(/\D/g, '');
 }
 
-function showError(message) {
-  if (!bookingError) return;
-  bookingError.textContent = message;
-  bookingError.hidden = !message;
+function formatPrice(value) {
+  return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
+}
+
+function getSelectedExtraIds() {
+  if (!avulsoForm) return [];
+  return [...avulsoForm.querySelectorAll('input[name="extra"]:checked')].map((input) => input.value);
+}
+
+function updateAvulsoTotal() {
+  if (!avulsoTotal) return;
+
+  const service = AVULSO_SERVICES[avulsoForm?.querySelector('input[name="service"]:checked')?.value];
+  if (!service) {
+    avulsoTotal.hidden = true;
+    avulsoTotal.textContent = '';
+    return;
+  }
+
+  const extras = getSelectedExtraIds();
+  const extrasTotal = extras.reduce((sum, id) => sum + (EXTRA_SERVICES[id]?.price || 0), 0);
+  const total = service.price + extrasTotal;
+
+  if (extras.length) {
+    const extrasLabel = extras.map((id) => EXTRA_SERVICES[id]?.name).filter(Boolean).join(', ');
+    avulsoTotal.textContent = `Extras: ${extrasLabel} — Total: ${formatPrice(total)}`;
+    avulsoTotal.hidden = false;
+    return;
+  }
+
+  avulsoTotal.textContent = `Total: ${formatPrice(total)}`;
+  avulsoTotal.hidden = false;
+}
+
+function showError(message, target = 'booking') {
+  const el = target === 'avulso' ? avulsoError : bookingError;
+  if (!el) return;
+  el.textContent = message;
+  el.hidden = !message;
 }
 
 function setLoading(button, loading, defaultText) {
@@ -86,7 +162,9 @@ function setLoading(button, loading, defaultText) {
 }
 
 function showStep(step) {
+  stepStart.hidden = step !== 'start';
   stepCpf.hidden = step !== 'cpf';
+  stepAvulso.hidden = step !== 'avulso';
   stepSchedule.hidden = step !== 'schedule';
   stepSuccess.hidden = step !== 'success';
 }
@@ -124,6 +202,32 @@ function getAvailableDates() {
   }
 
   return dates;
+}
+
+function updateWelcome() {
+  if (bookingMode === 'subscription') {
+    bookingWelcome.innerHTML = `
+      <p class="booking-welcome-name">Olá, <strong>${customerName}</strong></p>
+      <p class="booking-welcome-plan">Plano ativo: <span>${planLabel}</span></p>
+    `;
+    return;
+  }
+
+  const service = AVULSO_SERVICES[serviceId];
+  const extras = selectedExtraIds.map((id) => EXTRA_SERVICES[id]).filter(Boolean);
+  const extrasTotal = extras.reduce((sum, item) => sum + item.price, 0);
+  const total = service.price + extrasTotal;
+  const extrasHtml = extras.length
+    ? `<p class="booking-welcome-plan">Extras: <span>${extras.map((item) => item.name).join(', ')}</span></p>`
+    : '';
+
+  bookingWelcome.innerHTML = `
+    <p class="booking-welcome-name">Olá, <strong>${customerName}</strong></p>
+    <p class="booking-welcome-plan">Serviço avulso: <span>${service.name} — ${service.label}</span></p>
+    ${extrasHtml}
+    <p class="booking-welcome-plan">Total: <span>${formatPrice(total)}</span></p>
+    <p class="booking-welcome-note">Pagamento no dia do atendimento na barbearia.</p>
+  `;
 }
 
 function clearTimeSelection() {
@@ -242,6 +346,65 @@ async function loadSlots() {
   }
 }
 
+function resetScheduleForm() {
+  selectedDate = '';
+  selectedTime = '';
+  scheduleForm.reset();
+  dateGrid.innerHTML = '';
+  timeGrid.innerHTML = '';
+  timeFieldset.hidden = true;
+  scheduleSubmit.disabled = true;
+  dateHint.textContent = 'Selecione um barbeiro para ver as datas disponíveis.';
+}
+
+function resetAll() {
+  bookingMode = '';
+  verifiedCpf = '';
+  customerName = '';
+  planLabel = '';
+  serviceId = '';
+  selectedExtraIds = [];
+  customerPhone = '';
+  resetScheduleForm();
+  cpfForm?.reset();
+  avulsoForm?.reset();
+  updateAvulsoTotal();
+  showError('', 'booking');
+  showError('', 'avulso');
+}
+
+document.getElementById('mode-subscription')?.addEventListener('click', () => {
+  bookingMode = 'subscription';
+  showError('', 'booking');
+  showStep('cpf');
+});
+
+document.getElementById('mode-avulso')?.addEventListener('click', () => {
+  bookingMode = 'avulso';
+  showError('', 'avulso');
+  showStep('avulso');
+});
+
+document.getElementById('go-avulso-from-cpf')?.addEventListener('click', () => {
+  bookingMode = 'avulso';
+  const cpf = onlyDigits(cpfInput.value);
+  showError('', 'booking');
+  showStep('avulso');
+  if (cpf.length === 11 && avulsoCpfInput) {
+    avulsoCpfInput.value = formatCpf(cpf);
+  }
+});
+
+document.getElementById('back-from-cpf')?.addEventListener('click', () => {
+  showError('', 'booking');
+  showStep('start');
+});
+
+document.getElementById('back-from-avulso')?.addEventListener('click', () => {
+  showError('', 'avulso');
+  showStep('start');
+});
+
 cpfForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   showError('');
@@ -268,17 +431,16 @@ cpfForm?.addEventListener('submit', async (event) => {
     }
 
     if (!data.active) {
-      showError(data.message || 'Assinatura não encontrada.');
+      showError(data.message || 'Assinatura não encontrada. Você pode agendar como avulso.');
       return;
     }
 
+    bookingMode = 'subscription';
     verifiedCpf = cpf;
+    customerName = data.customerName;
+    planLabel = data.planName;
 
-    bookingWelcome.innerHTML = `
-      <p class="booking-welcome-name">Olá, <strong>${data.customerName}</strong></p>
-      <p class="booking-welcome-plan">Plano ativo: <span>${data.planName}</span></p>
-    `;
-
+    updateWelcome();
     showStep('schedule');
     renderDateCards();
   } catch (error) {
@@ -286,6 +448,48 @@ cpfForm?.addEventListener('submit', async (event) => {
   } finally {
     setLoading(cpfSubmit, false, 'Verificar e continuar');
   }
+});
+
+avulsoForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  showError('', 'avulso');
+
+  const name = document.getElementById('avulso-name')?.value.trim();
+  const cpf = onlyDigits(avulsoCpfInput?.value);
+  const phone = onlyDigits(avulsoPhoneInput?.value);
+  const service = avulsoForm.querySelector('input[name="service"]:checked')?.value;
+
+  if (!name || name.length < 3) {
+    showError('Informe seu nome completo.', 'avulso');
+    return;
+  }
+
+  if (cpf.length !== 11) {
+    showError('Informe um CPF válido com 11 dígitos.', 'avulso');
+    return;
+  }
+
+  if (phone.length < 10) {
+    showError('Informe um telefone válido.', 'avulso');
+    return;
+  }
+
+  if (!service) {
+    showError('Escolha um serviço avulso.', 'avulso');
+    return;
+  }
+
+  bookingMode = 'avulso';
+  verifiedCpf = cpf;
+  customerName = name;
+  customerPhone = phone;
+  serviceId = service;
+  selectedExtraIds = getSelectedExtraIds();
+
+  updateWelcome();
+  resetScheduleForm();
+  showStep('schedule');
+  renderDateCards();
 });
 
 scheduleForm?.addEventListener('change', (event) => {
@@ -325,16 +529,26 @@ scheduleForm?.addEventListener('submit', async (event) => {
 
   setLoading(scheduleSubmit, true, 'Confirmar agendamento');
 
+  const payload = {
+    cpf: verifiedCpf,
+    barberId,
+    date,
+    time,
+    bookingType: bookingMode,
+  };
+
+  if (bookingMode === 'avulso') {
+    payload.name = customerName;
+    payload.phone = customerPhone;
+    payload.serviceId = serviceId;
+    payload.extras = selectedExtraIds;
+  }
+
   try {
     const response = await fetch('/.netlify/functions/appointments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cpf: verifiedCpf,
-        barberId,
-        date,
-        time,
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
@@ -344,12 +558,29 @@ scheduleForm?.addEventListener('submit', async (event) => {
     }
 
     successMessage.textContent = `Seu horário com ${data.appointment.barberName} foi reservado com sucesso.`;
-    successDetails.innerHTML = `
-      <p><strong>Data:</strong> ${formatDateBr(data.appointment.date)}</p>
-      <p><strong>Horário:</strong> ${data.appointment.time}</p>
-      <p><strong>Barbeiro:</strong> ${data.appointment.barberName}</p>
-      <p><strong>Plano:</strong> ${data.appointment.planName}</p>
-    `;
+
+    if (data.appointment.bookingType === 'avulso') {
+      const extrasHtml = data.appointment.extras?.length
+        ? `<p><strong>Extras:</strong> ${data.appointment.extras.map((item) => item.name).join(', ')}</p>`
+        : '';
+
+      successDetails.innerHTML = `
+        <p><strong>Data:</strong> ${formatDateBr(data.appointment.date)}</p>
+        <p><strong>Horário:</strong> ${data.appointment.time}</p>
+        <p><strong>Barbeiro:</strong> ${data.appointment.barberName}</p>
+        <p><strong>Serviço:</strong> ${data.appointment.serviceName}</p>
+        ${extrasHtml}
+        <p><strong>Valor:</strong> ${formatPrice(data.appointment.price)}</p>
+        <p><strong>Pagamento:</strong> No dia do atendimento na barbearia</p>
+      `;
+    } else {
+      successDetails.innerHTML = `
+        <p><strong>Data:</strong> ${formatDateBr(data.appointment.date)}</p>
+        <p><strong>Horário:</strong> ${data.appointment.time}</p>
+        <p><strong>Barbeiro:</strong> ${data.appointment.barberName}</p>
+        <p><strong>Plano:</strong> ${data.appointment.planName}</p>
+      `;
+    }
 
     showStep('success');
   } catch (error) {
@@ -363,21 +594,33 @@ scheduleForm?.addEventListener('submit', async (event) => {
 });
 
 bookingBack?.addEventListener('click', () => {
-  verifiedCpf = '';
-  selectedDate = '';
-  selectedTime = '';
-  scheduleForm.reset();
-  dateGrid.innerHTML = '';
-  timeGrid.innerHTML = '';
-  timeFieldset.hidden = true;
-  scheduleSubmit.disabled = true;
-  dateHint.textContent = 'Selecione um barbeiro para ver as datas disponíveis.';
+  resetScheduleForm();
   showError('');
-  showStep('cpf');
+  showStep(bookingMode === 'avulso' ? 'avulso' : 'cpf');
 });
 
 cpfInput?.addEventListener('input', () => {
   cpfInput.value = formatCpf(cpfInput.value);
 });
 
-showStep('cpf');
+avulsoCpfInput?.addEventListener('input', () => {
+  avulsoCpfInput.value = formatCpf(avulsoCpfInput.value);
+});
+
+avulsoPhoneInput?.addEventListener('input', () => {
+  avulsoPhoneInput.value = formatPhone(avulsoPhoneInput.value);
+});
+
+avulsoForm?.addEventListener('change', (event) => {
+  if (event.target.name === 'service' || event.target.name === 'extra') {
+    updateAvulsoTotal();
+  }
+});
+
+const urlMode = new URLSearchParams(window.location.search).get('mode');
+if (urlMode === 'avulso') {
+  bookingMode = 'avulso';
+  showStep('avulso');
+} else {
+  showStep('start');
+}

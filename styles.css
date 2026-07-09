@@ -1603,6 +1603,186 @@ body:hover .cursor-glow {
   text-underline-offset: 2px;
 }
 
+.booking-link-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--red);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.booking-welcome-note {
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.mode-card strong {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.05em;
+}
+
+.mode-card p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.mode-card:hover {
+  border-color: var(--border-red);
+  transform: translateY(-2px);
+}
+
+.mode-card-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: var(--red-subtle);
+  color: var(--red);
+  border: 1px solid var(--border-red);
+}
+
+.mode-card-badge.avulso {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.service-card {
+  cursor: pointer;
+}
+
+.service-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.service-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1rem 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.service-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.service-price {
+  color: var(--red);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.service-card input:checked + .service-card-inner {
+  border-color: var(--red);
+  box-shadow: 0 0 20px var(--red-glow);
+  transform: translateY(-2px);
+}
+
+.service-card:hover .service-card-inner {
+  border-color: var(--border-red);
+}
+
+.legend-optional {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.extras-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.extra-card {
+  cursor: pointer;
+}
+
+.extra-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.extra-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.85rem 0.65rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.extra-card input:checked + .extra-card-inner {
+  border-color: var(--red);
+  box-shadow: 0 0 16px var(--red-glow);
+  transform: translateY(-2px);
+}
+
+.extra-card:hover .extra-card-inner {
+  border-color: var(--border-red);
+}
+
+.avulso-total {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .booking-welcome {
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
@@ -2395,6 +2575,12 @@ body:hover .cursor-glow {
   }
 
   .barber-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-grid,
+  .service-grid,
+  .extras-grid {
     grid-template-columns: 1fr;
   }
 
