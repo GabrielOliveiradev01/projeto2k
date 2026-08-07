@@ -1,4 +1,4 @@
-const ASAAS_BASE_URL = 'https://api-sandbox.asaas.com/v3';
+const ASAAS_BASE_URL = 'https://api.asaas.com/v3';
 
 const PLAN_VALUES = {
   'cuts-limited': 89.9,
