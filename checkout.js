@@ -107,6 +107,7 @@ const cardExpiryInput = document.getElementById('checkout-card-expiry');
 const cardCvvInput = document.getElementById('checkout-card-cvv');
 const cpfInput = document.getElementById('checkout-cpf');
 const phoneInput = document.getElementById('checkout-phone');
+const cepInput = document.getElementById('checkout-cep');
 const checkoutSubmitBtn = document.getElementById('checkout-submit');
 
 function getPlanFromUrl() {
@@ -154,6 +155,11 @@ function formatCpf(value) {
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function formatCep(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  return digits.replace(/(\d{5})(\d)/, '$1-$2');
 }
 
 function formatPhone(value) {
@@ -215,6 +221,13 @@ function validateCheckoutForm() {
     return false;
   }
 
+  const cepDigits = cepInput?.value.replace(/\D/g, '') || '';
+  if (cepDigits.length !== 8) {
+    alert('Informe um CEP válido.');
+    cepInput?.focus();
+    return false;
+  }
+
   return true;
 }
 
@@ -232,6 +245,7 @@ async function submitCheckout() {
     email: emailInput.value.trim(),
     cpf: cpfInput.value,
     phone: phoneInput.value,
+    cep: cepInput.value,
     planId: checkoutPlanSelect.value,
     cardHolderName: cardNameInput.value.trim(),
     cardNumber: cardNumberInput.value,
@@ -300,6 +314,10 @@ function initCheckout() {
 
   phoneInput?.addEventListener('input', () => {
     phoneInput.value = formatPhone(phoneInput.value);
+  });
+
+  cepInput?.addEventListener('input', () => {
+    cepInput.value = formatCep(cepInput.value);
   });
 
   checkoutForm.addEventListener('submit', async (event) => {

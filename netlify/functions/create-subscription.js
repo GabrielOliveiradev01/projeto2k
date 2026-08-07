@@ -133,6 +133,7 @@ exports.handler = async (event) => {
   const email = String(body.email || '').trim();
   const cpf = onlyDigits(body.cpf);
   const phone = onlyDigits(body.phone);
+  const cep = onlyDigits(body.cep);
   const planId = String(body.planId || '').trim();
   const cardHolderName = String(body.cardHolderName || '').trim();
   const cardNumber = onlyDigits(body.cardNumber);
@@ -140,8 +141,8 @@ exports.handler = async (event) => {
   const expiryYear = String(body.expiryYear || '');
   const cvv = onlyDigits(body.cvv);
 
-  if (!name || !email || cpf.length !== 11 || phone.length < 10) {
-    return jsonResponse(400, { error: 'Preencha nome, CPF, e-mail e telefone válidos.' });
+  if (!name || !email || cpf.length !== 11 || phone.length < 10 || cep.length !== 8) {
+    return jsonResponse(400, { error: 'Preencha nome, CPF, e-mail, telefone e CEP válidos.' });
   }
 
   if (!PLAN_VALUES[planId]) {
@@ -188,7 +189,7 @@ exports.handler = async (event) => {
           name,
           email,
           cpfCnpj: cpf,
-          postalCode: '08357090',
+          postalCode: cep,
           addressNumber: '000',
           phone,
         },
