@@ -188,7 +188,7 @@ exports.handler = async (event) => {
           name,
           email,
           cpfCnpj: cpf,
-          postalCode: '00000000',
+          postalCode: '08357090',
           addressNumber: '000',
           phone,
         },
