@@ -67,8 +67,8 @@ const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', '
 
 const AVULSO_SERVICES = {
   corte: { name: 'Corte', price: 50, label: 'R$ 50,00' },
-  barba: { name: 'Barba', price: 55, label: 'R$ 55,00' },
-  'corte-barba': { name: 'Corte + Barba', price: 85, label: 'R$ 85,00' },
+  barba: { name: 'Barba', price: 40, label: 'R$ 40,00' },
+  'corte-barba': { name: 'Corte + Barba', price: 70, label: 'R$ 70,00' },
 };
 
 const EXTRA_SERVICES = {

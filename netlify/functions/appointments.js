@@ -14,8 +14,8 @@ const LIMITED_MONTHLY_VISITS = 4;
 
 const AVULSO_SERVICES = {
   corte: { name: 'Corte', label: 'Corte — R$ 50,00', price: 50 },
-  barba: { name: 'Barba', label: 'Barba — R$ 55,00', price: 55 },
-  'corte-barba': { name: 'Corte + Barba', label: 'Corte + Barba — R$ 85,00', price: 85 },
+  barba: { name: 'Barba', label: 'Barba — R$ 40,00', price: 40 },
+  'corte-barba': { name: 'Corte + Barba', label: 'Corte + Barba — R$ 70,00', price: 70 },
 };
 
 const EXTRA_SERVICES = {
