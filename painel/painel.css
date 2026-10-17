@@ -105,7 +105,7 @@
 
 .panel-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -234,6 +234,12 @@
   background: rgba(46, 204, 113, 0.15);
   color: #6ee7a0;
   border: 1px solid rgba(46, 204, 113, 0.35);
+}
+
+.panel-badge.attended {
+  background: rgba(79, 140, 255, 0.15);
+  color: #8db4ff;
+  border: 1px solid rgba(79, 140, 255, 0.4);
 }
 
 .panel-badge.cancelled {
@@ -957,4 +963,12 @@
     font-size: 1.35rem;
     min-width: auto;
   }
+}
+
+.panel-presence-btn {
+  white-space: nowrap;
+}
+
+.panel-product-form {
+  align-items: flex-end;
 }

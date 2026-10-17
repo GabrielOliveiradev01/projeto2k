@@ -30,6 +30,8 @@ function formatAppointment(row) {
     date: row.appointment_date,
     time: row.appointment_time,
     status: row.status,
+    attended: Boolean(row.attended),
+    attendedAt: row.attended_at || null,
     createdAt: row.created_at,
   };
 }
@@ -92,25 +94,45 @@ async function handleUpdate(event) {
   }
 
   const id = String(body.id || '').trim();
-  const status = String(body.status || '').trim();
+  const hasStatus = body.status !== undefined;
+  const hasAttended = body.attended !== undefined;
 
   if (!id) {
     return jsonResponse(400, { error: 'ID do agendamento obrigatório.' });
   }
 
-  if (!['confirmed', 'cancelled'].includes(status)) {
-    return jsonResponse(400, { error: 'Status inválido.' });
+  const changes = {};
+
+  if (hasStatus) {
+    const status = String(body.status || '').trim();
+    if (!['confirmed', 'cancelled'].includes(status)) {
+      return jsonResponse(400, { error: 'Status inválido.' });
+    }
+    changes.status = status;
+  }
+
+  if (hasAttended) {
+    const attended = body.attended === true;
+    changes.attended = attended;
+    changes.attended_at = attended ? new Date().toISOString() : null;
+  }
+
+  if (Object.keys(changes).length === 0) {
+    return jsonResponse(400, { error: 'Nada para atualizar.' });
   }
 
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('appointments')
-    .update({ status })
+    .update(changes)
     .eq('id', id)
     .select('*')
     .single();
 
   if (error) {
+    if (error.code === '42703') {
+      return jsonResponse(500, { error: 'Colunas de presença não existem. Execute a migração em supabase/schema.sql.' });
+    }
     throw new Error(error.message);
   }
 

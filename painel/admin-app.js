@@ -219,6 +219,11 @@ class AdminApp extends LitElement {
     calendarMonth: { type: Number },
     calendarYear: { type: Number },
     selectedDate: { type: String },
+    products: { type: Array },
+    productsLoading: { type: Boolean },
+    productsError: { type: String },
+    productForm: { type: Object },
+    productSaving: { type: Boolean },
   };
 
   constructor() {
@@ -262,6 +267,11 @@ class AdminApp extends LitElement {
     this.calendarMonth = now.getMonth();
     this.calendarYear = now.getFullYear();
     this.selectedDate = todayIso();
+    this.products = [];
+    this.productsLoading = false;
+    this.productsError = '';
+    this.productForm = null;
+    this.productSaving = false;
   }
 
   createRenderRoot() {
@@ -392,6 +402,10 @@ class AdminApp extends LitElement {
       this.loadFinance();
       return;
     }
+    if (this.section === 'products') {
+      this.loadProducts();
+      return;
+    }
     this.loadAppointments();
   }
 
@@ -403,6 +417,10 @@ class AdminApp extends LitElement {
     } else if (section === 'finance') {
       this.financeError = '';
       this.loadFinance();
+    } else if (section === 'products') {
+      this.productsError = '';
+      this.productForm = null;
+      this.loadProducts();
     } else {
       this.error = '';
       this._closeSubscriberHistory();
@@ -537,6 +555,251 @@ class AdminApp extends LitElement {
     }
   }
 
+  async _setPresence(id, attended, source) {
+    this.actionId = id;
+    if (source === 'history') this.subscriberHistoryError = '';
+    else this.error = '';
+
+    try {
+      await this._api('/.netlify/functions/admin-appointments', {
+        method: 'PATCH',
+        body: JSON.stringify({ id, attended }),
+      });
+      if (source === 'history' && this.selectedSubscriber) {
+        await this._openSubscriberHistory(this.selectedSubscriber);
+      } else {
+        await this.loadAppointments();
+      }
+    } catch (error) {
+      if (source === 'history') this.subscriberHistoryError = this._parseError(error);
+      else this.error = this._parseError(error);
+    } finally {
+      this.actionId = '';
+    }
+  }
+
+  _renderPresenceButton(item, source) {
+    if (item.status !== 'confirmed') return '';
+    const busy = this.actionId === item.id;
+    return html`
+      <button
+        class="btn btn-sm ${item.attended ? 'btn-outline' : 'btn-primary'} panel-presence-btn"
+        @click=${() => this._setPresence(item.id, !item.attended, source)}
+        ?disabled=${busy}
+      >
+        ${busy ? '...' : item.attended ? 'Desfazer presença' : 'Confirmar presença'}
+      </button>
+    `;
+  }
+
+  _statusLabel(item) {
+    if (item.status === 'cancelled') return 'Cancelado';
+    return item.attended ? 'Compareceu' : 'Agendado';
+  }
+
+  _statusClass(item) {
+    if (item.status === 'cancelled') return 'cancelled';
+    return item.attended ? 'attended' : 'confirmed';
+  }
+
+  async loadProducts() {
+    this.productsLoading = true;
+    this.productsError = '';
+
+    try {
+      const data = await this._api('/.netlify/functions/admin-products');
+      this.products = data.products || [];
+    } catch (error) {
+      this.productsError = this._parseError(error);
+      this.products = [];
+    } finally {
+      this.productsLoading = false;
+    }
+  }
+
+  _openProductForm(product = null) {
+    this.productsError = '';
+    this.productForm = product
+      ? { ...product, price: String(product.price).replace('.', ',') }
+      : { id: '', name: '', category: '', price: '', stock: '0', active: true };
+  }
+
+  _closeProductForm() {
+    this.productForm = null;
+  }
+
+  _onProductFieldChange(event) {
+    const { name, value, type, checked } = event.target;
+    this.productForm = { ...this.productForm, [name]: type === 'checkbox' ? checked : value };
+  }
+
+  async _saveProduct(event) {
+    event.preventDefault();
+    const form = this.productForm;
+    if (!form) return;
+
+    this.productSaving = true;
+    this.productsError = '';
+
+    try {
+      await this._api('/.netlify/functions/admin-products', {
+        method: form.id ? 'PATCH' : 'POST',
+        body: JSON.stringify(form),
+      });
+      this.productForm = null;
+      await this.loadProducts();
+    } catch (error) {
+      this.productsError = this._parseError(error);
+    } finally {
+      this.productSaving = false;
+    }
+  }
+
+  async _toggleProductActive(product) {
+    this.actionId = product.id;
+    this.productsError = '';
+
+    try {
+      await this._api('/.netlify/functions/admin-products', {
+        method: 'PATCH',
+        body: JSON.stringify({ id: product.id, active: !product.active }),
+      });
+      await this.loadProducts();
+    } catch (error) {
+      this.productsError = this._parseError(error);
+    } finally {
+      this.actionId = '';
+    }
+  }
+
+  async _deleteProduct(product) {
+    if (!confirm(`Excluir o produto "${product.name}"?`)) return;
+
+    this.actionId = product.id;
+    this.productsError = '';
+
+    try {
+      await this._api('/.netlify/functions/admin-products', {
+        method: 'DELETE',
+        body: JSON.stringify({ id: product.id }),
+      });
+      await this.loadProducts();
+    } catch (error) {
+      this.productsError = this._parseError(error);
+    } finally {
+      this.actionId = '';
+    }
+  }
+
+  _renderProducts() {
+    const form = this.productForm;
+    const activeCount = this.products.filter((item) => item.active).length;
+    const stockTotal = this.products.reduce((sum, item) => sum + Number(item.stock || 0), 0);
+
+    return html`
+      ${this.productsError ? html`<div class="panel-alert">${this.productsError}</div>` : ''}
+
+      <div class="panel-stats">
+        <article class="panel-stat">
+          <span class="panel-stat-value">${this.products.length}</span>
+          <span class="panel-stat-label">Produtos</span>
+        </article>
+        <article class="panel-stat">
+          <span class="panel-stat-value">${activeCount}</span>
+          <span class="panel-stat-label">Ativos</span>
+        </article>
+        <article class="panel-stat">
+          <span class="panel-stat-value">${stockTotal}</span>
+          <span class="panel-stat-label">Itens em estoque</span>
+        </article>
+      </div>
+
+      <section class="panel-filters">
+        <button class="btn btn-sm btn-primary" type="button" @click=${() => this._openProductForm()}>
+          + Novo produto
+        </button>
+      </section>
+
+      ${form
+        ? html`
+          <form class="panel-filters panel-product-form" @submit=${this._saveProduct}>
+            <label class="panel-label">
+              Nome
+              <input type="text" name="name" .value=${form.name} @input=${this._onProductFieldChange} required>
+            </label>
+            <label class="panel-label">
+              Categoria
+              <input type="text" name="category" .value=${form.category || ''} @input=${this._onProductFieldChange} placeholder="Ex: Pomada">
+            </label>
+            <label class="panel-label">
+              Preço (R$)
+              <input type="text" name="price" inputmode="decimal" .value=${form.price} @input=${this._onProductFieldChange} placeholder="0,00" required>
+            </label>
+            <label class="panel-label">
+              Estoque
+              <input type="number" name="stock" min="0" .value=${form.stock} @input=${this._onProductFieldChange} required>
+            </label>
+            <label class="panel-label">
+              <span>Ativo</span>
+              <input type="checkbox" name="active" .checked=${form.active} @change=${this._onProductFieldChange}>
+            </label>
+            <div class="panel-header-actions">
+              <button class="btn btn-sm btn-primary" type="submit" ?disabled=${this.productSaving}>
+                ${this.productSaving ? 'Salvando...' : form.id ? 'Salvar alterações' : 'Adicionar produto'}
+              </button>
+              <button class="btn btn-sm btn-outline" type="button" @click=${this._closeProductForm}>Cancelar</button>
+            </div>
+          </form>
+        `
+        : ''}
+
+      <section class="panel-table-wrap">
+        ${this.productsLoading
+          ? html`<p class="panel-empty">Carregando produtos...</p>`
+          : this.products.length === 0
+            ? html`<p class="panel-empty">Nenhum produto cadastrado. Clique em "+ Novo produto".</p>`
+            : html`
+              <table class="panel-table">
+                <thead>
+                  <tr>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${this.products.map((item) => html`
+                    <tr class=${item.active ? '' : 'is-cancelled'}>
+                      <td data-label="Produto">${item.name}</td>
+                      <td data-label="Categoria">${item.category || '—'}</td>
+                      <td data-label="Preço">${formatMoney(item.price)}</td>
+                      <td data-label="Estoque">${item.stock}</td>
+                      <td data-label="Status">
+                        <span class="panel-badge ${item.active ? 'confirmed' : 'cancelled'}">${item.active ? 'Ativo' : 'Inativo'}</span>
+                      </td>
+                      <td data-label="Ações">
+                        <div class="panel-header-actions">
+                          <button class="btn btn-sm btn-outline" @click=${() => this._openProductForm(item)}>Editar</button>
+                          <button class="btn btn-sm btn-outline" @click=${() => this._toggleProductActive(item)} ?disabled=${this.actionId === item.id}>
+                            ${item.active ? 'Desativar' : 'Ativar'}
+                          </button>
+                          <button class="btn btn-sm btn-outline panel-cancel-btn" @click=${() => this._deleteProduct(item)} ?disabled=${this.actionId === item.id}>
+                            Excluir
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  `)}
+                </tbody>
+              </table>
+            `}
+      </section>
+    `;
+  }
+
   _onFilterChange(event) {
     const { name, value } = event.target;
     this[name] = value;
@@ -593,7 +856,8 @@ class AdminApp extends LitElement {
     const confirmed = this.appointments.filter((item) => item.status === 'confirmed').length;
     const gemeo1 = this.appointments.filter((item) => item.barberId === 'gemeo-1' && item.status === 'confirmed').length;
     const gemeo2 = this.appointments.filter((item) => item.barberId === 'gemeo-2' && item.status === 'confirmed').length;
-    return { total: this.appointments.length, confirmed, gemeo1, gemeo2 };
+    const attended = this.appointments.filter((item) => item.status === 'confirmed' && item.attended).length;
+    return { total: this.appointments.length, confirmed, attended, gemeo1, gemeo2 };
   }
 
   _renderCalendar(byDate) {
@@ -669,9 +933,10 @@ class AdminApp extends LitElement {
                       </div>
                     </div>
                     <div class="cal-detail-actions">
-                      <span class="panel-badge ${item.status}">
-                        ${item.status === 'confirmed' ? 'Confirmado' : 'Cancelado'}
+                      <span class="panel-badge ${this._statusClass(item)}">
+                        ${this._statusLabel(item)}
                       </span>
+                      ${this._renderPresenceButton(item, 'list')}
                       ${item.status === 'confirmed'
                         ? html`
                           <button
@@ -739,9 +1004,10 @@ class AdminApp extends LitElement {
                           </div>
                         </div>
                         <div class="subscriber-history-actions">
-                          <span class="panel-badge ${item.status}">
-                            ${item.status === 'confirmed' ? 'Confirmado' : 'Cancelado'}
+                          <span class="panel-badge ${this._statusClass(item)}">
+                            ${this._statusLabel(item)}
                           </span>
+                          ${this._renderPresenceButton(item, 'history')}
                           ${item.status === 'confirmed'
                             ? html`
                               <button
@@ -1162,11 +1428,12 @@ class AdminApp extends LitElement {
                       <td data-label="Barbeiro">${item.barberName}</td>
                       <td data-label="Plano">${item.planName}</td>
                       <td data-label="Status">
-                        <span class="panel-badge ${item.status}">${item.status === 'confirmed' ? 'Confirmado' : 'Cancelado'}</span>
+                        <span class="panel-badge ${this._statusClass(item)}">${this._statusLabel(item)}</span>
                       </td>
                       <td data-label="Ações">
                         ${item.status === 'confirmed'
                           ? html`
+                            ${this._renderPresenceButton(item, 'list')}
                             <button
                               class="btn btn-sm btn-outline panel-cancel-btn"
                               @click=${() => this._cancelAppointment(item.id)}
@@ -1202,7 +1469,7 @@ class AdminApp extends LitElement {
             <span>2k</span>
           </a>
           <div class="panel-header-actions">
-            <button class="btn btn-sm btn-outline" @click=${() => this._refreshCurrentSection()} ?disabled=${this.loading || this.subscribersLoading || this.financeLoading}>
+            <button class="btn btn-sm btn-outline" @click=${() => this._refreshCurrentSection()} ?disabled=${this.loading || this.subscribersLoading || this.financeLoading || this.productsLoading}>
               Atualizar
             </button>
             <button class="btn btn-sm btn-outline" @click=${this._logout}>Sair</button>
@@ -1218,7 +1485,9 @@ class AdminApp extends LitElement {
             ? 'Busque clientes por nome ou CPF e clique em um assinante para ver o histórico de agendamentos.'
             : this.section === 'finance'
               ? 'Acompanhe receitas de assinaturas (Asaas), agendamentos avulsos e cobranças pendentes.'
-              : 'Visualize e gerencie os horários reservados pelos assinantes.'}</p>
+              : this.section === 'products'
+                ? 'Cadastre e gerencie os produtos vendidos na barbearia: preço, estoque e disponibilidade.'
+                : 'Visualize e gerencie os horários reservados pelos assinantes.'}</p>
         </div>
 
         <div class="panel-section-tabs">
@@ -1240,6 +1509,12 @@ class AdminApp extends LitElement {
           >
             Financeiro
           </button>
+          <button
+            class="panel-section-tab ${this.section === 'products' ? 'is-active' : ''}"
+            @click=${() => this._setSection('products')}
+          >
+            Produtos
+          </button>
         </div>
 
         ${this.section === 'appointments' && this.error
@@ -1250,7 +1525,9 @@ class AdminApp extends LitElement {
           ? this._renderSubscribers()
           : this.section === 'finance'
             ? this._renderFinance()
-            : html`
+            : this.section === 'products'
+              ? this._renderProducts()
+              : html`
             <div class="panel-stats">
               <article class="panel-stat">
                 <span class="panel-stat-value">${stats.total}</span>
@@ -1259,6 +1536,10 @@ class AdminApp extends LitElement {
               <article class="panel-stat">
                 <span class="panel-stat-value">${stats.confirmed}</span>
                 <span class="panel-stat-label">Confirmados</span>
+              </article>
+              <article class="panel-stat">
+                <span class="panel-stat-value">${stats.attended}</span>
+                <span class="panel-stat-label">Compareceram</span>
               </article>
               <article class="panel-stat">
                 <span class="panel-stat-value">${stats.gemeo1}</span>

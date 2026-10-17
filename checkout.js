@@ -62,33 +62,6 @@ const CHECKOUT_PLANS = {
     desc: 'Corte + barba com limite mensal',
     features: ['Corte + barba', 'Quantidade limitada/mês', 'Melhor custo-benefício'],
   },
-  'cuts-infinite': {
-    name: 'Cuts Infinite',
-    price: 'R$ 99,90',
-    value: 99.9,
-    badge: 'Infinite',
-    type: 'infinite',
-    desc: 'Cortes ilimitados durante o mês',
-    features: ['Cortes ilimitados', 'Sem restrição de visitas', 'Prioridade no agendamento'],
-  },
-  'barb-infinite': {
-    name: 'Barb Infinite',
-    price: 'R$ 129,90',
-    value: 129.9,
-    badge: 'Infinite',
-    type: 'infinite',
-    desc: 'Barba ilimitada durante o mês',
-    features: ['Barba ilimitada', 'Sem restrição de visitas', 'Tratamentos inclusos'],
-  },
-  'duos-infinite': {
-    name: 'Duos Infinite',
-    price: 'R$ 199,90',
-    value: 199.9,
-    badge: 'Infinite',
-    type: 'infinite',
-    desc: 'Corte + barba ilimitados',
-    features: ['Corte + barba ilimitados', 'Experiência VIP completa', 'Acesso total aos serviços'],
-  },
 };
 
 const checkoutForm = document.getElementById('checkout-form');

@@ -28,3 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_appointments_lookup
 
 CREATE INDEX IF NOT EXISTS idx_appointments_cpf_month
   ON appointments (cpf, appointment_date, status);
+
+-- Confirmação de presença (cliente compareceu ao horário)
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS attended BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS attended_at TIMESTAMPTZ;

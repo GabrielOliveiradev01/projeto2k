@@ -4,18 +4,12 @@ const PLAN_VALUES = {
   'cuts-limited': 89.9,
   'barb-limited': 119.9,
   'duos-limited': 179.9,
-  'cuts-infinite': 99.9,
-  'barb-infinite': 129.9,
-  'duos-infinite': 199.9,
 };
 
 const PLAN_NAMES = {
   'cuts-limited': 'Cuts Limited',
   'barb-limited': 'Barb Limited',
   'duos-limited': 'Duos Limited',
-  'cuts-infinite': 'Cuts Infinite',
-  'barb-infinite': 'Barb Infinite',
-  'duos-infinite': 'Duos Infinite',
 };
 
 function jsonResponse(statusCode, body) {
