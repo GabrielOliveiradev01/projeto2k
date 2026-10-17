@@ -1,6 +1,7 @@
 require('./lib/load-env');
 const { jsonResponse, fetchAllPaginated, parsePlanFromDescription } = require('./lib/asaas');
 const { getSupabaseAdmin } = require('./lib/supabase');
+const { barberNameFor } = require('./lib/agenda');
 
 function getAdminSecret() {
   return process.env.ADMIN_PASSWORD || '';
@@ -52,7 +53,7 @@ async function getAvulsoAppointments(from, to) {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('appointments')
-    .select('id, customer_name, cpf, plan_name, barber_name, appointment_date, appointment_time, status')
+    .select('id, customer_name, cpf, plan_name, barber_id, barber_name, appointment_date, appointment_time, status')
     .ilike('plan_name', 'Avulso%')
     .gte('appointment_date', from)
     .lte('appointment_date', to)
@@ -71,7 +72,7 @@ async function getAvulsoAppointments(from, to) {
     customerName: row.customer_name,
     cpf: row.cpf,
     planName: row.plan_name,
-    barberName: row.barber_name,
+    barberName: barberNameFor(row.barber_id, row.barber_name),
     date: row.appointment_date,
     time: row.appointment_time,
     status: row.status,

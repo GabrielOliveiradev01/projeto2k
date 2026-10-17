@@ -280,13 +280,15 @@ function renderDateCards() {
   });
 }
 
-function renderTimeCards(slots) {
+function renderTimeCards(slots, closedReason) {
   timeGrid.innerHTML = '';
   selectedTime = '';
 
   if (!slots.length) {
     timeFieldset.hidden = false;
-    slotsHint.textContent = 'Nenhum horário livre nesta data. Escolha outro dia.';
+    slotsHint.textContent = closedReason === undefined
+      ? 'Nenhum horário livre nesta data. Escolha outro dia.'
+      : `Não atendemos neste dia${closedReason ? ` (${closedReason})` : ''}. Escolha outro dia.`;
     scheduleSubmit.disabled = true;
     return;
   }
@@ -338,7 +340,7 @@ async function loadSlots() {
       throw new Error(data.error || 'Não foi possível carregar os horários.');
     }
 
-    renderTimeCards(data.slots);
+    renderTimeCards(data.slots, data.blocked ? data.reason || '' : undefined);
   } catch (error) {
     timeGrid.innerHTML = '';
     slotsHint.textContent = 'Erro ao carregar horários.';

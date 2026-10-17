@@ -24,6 +24,7 @@ function networkErrorMessage() {
 
 function formatCpf(cpf) {
   const digits = String(cpf || '').replace(/\D/g, '');
+  if (/^000\d{8}$/.test(digits)) return '—';
   if (digits.length !== 11) return cpf || '—';
   return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }
@@ -54,6 +55,24 @@ function formatDateBr(dateStr) {
   if (!dateStr) return '—';
   const [year, month, day] = dateStr.split('-');
   return `${day}/${month}/${year}`;
+}
+
+const DEFAULT_BARBERS = [
+  { id: 'gemeo-1', name: 'Kevyn' },
+  { id: 'gemeo-2', name: 'Kawan' },
+];
+
+function weekRange(iso) {
+  const date = new Date(`${iso}T12:00:00`);
+  const monday = new Date(date);
+  monday.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { from: toIso(monday), to: toIso(sunday) };
+}
+
+function formatRangeBr(from, to) {
+  return from === to ? formatDateBr(from) : `${formatDateBr(from)} a ${formatDateBr(to)}`;
 }
 
 function toIso(date) {
@@ -224,6 +243,19 @@ class AdminApp extends LitElement {
     productsError: { type: String },
     productForm: { type: Object },
     productSaving: { type: Boolean },
+    agendaSettings: { type: Object },
+    catalog: { type: Object },
+    agendaLoading: { type: Boolean },
+    agendaError: { type: String },
+    agendaSaving: { type: Boolean },
+    lunchForm: { type: Object },
+    blockForm: { type: Object },
+    blockConflicts: { type: Array },
+    apptForm: { type: Object },
+    apptFormCheck: { type: Object },
+    apptFormError: { type: String },
+    apptFormSaving: { type: Boolean },
+    subscriberQuery: { type: String },
   };
 
   constructor() {
@@ -272,6 +304,20 @@ class AdminApp extends LitElement {
     this.productsError = '';
     this.productForm = null;
     this.productSaving = false;
+    this.agendaSettings = { lunch: { enabled: false, start: '12:00', end: '13:00' }, blocks: [] };
+    this.catalog = null;
+    this.agendaLoading = false;
+    this.agendaError = '';
+    this.agendaSaving = false;
+    this.lunchForm = { enabled: false, start: '12:00', end: '13:00' };
+    this.blockForm = { kind: 'day', date: todayIso(), from: todayIso(), to: todayIso(), reason: '' };
+    this.blockConflicts = [];
+    this.apptForm = null;
+    this.apptFormCheck = null;
+    this.apptFormError = '';
+    this.apptFormSaving = false;
+    this.subscriberQuery = '';
+    this._checkTicket = 0;
   }
 
   createRenderRoot() {
@@ -331,7 +377,10 @@ class AdminApp extends LitElement {
     }
 
     if (!response.ok) {
-      throw new Error(data.error || 'Erro na requisição.');
+      const failure = new Error(data.error || 'Erro na requisição.');
+      failure.data = data;
+      failure.status = response.status;
+      throw failure;
     }
 
     return data;
@@ -406,6 +455,10 @@ class AdminApp extends LitElement {
       this.loadProducts();
       return;
     }
+    if (this.section === 'agenda') {
+      this.loadAgenda();
+      return;
+    }
     this.loadAppointments();
   }
 
@@ -421,6 +474,10 @@ class AdminApp extends LitElement {
       this.productsError = '';
       this.productForm = null;
       this.loadProducts();
+    } else if (section === 'agenda') {
+      this.agendaError = '';
+      this.blockConflicts = [];
+      this.loadAgenda();
     } else {
       this.error = '';
       this._closeSubscriberHistory();
@@ -518,6 +575,7 @@ class AdminApp extends LitElement {
   async loadAppointments() {
     this.loading = true;
     this.error = '';
+    this.loadAgenda();
 
     const params = new URLSearchParams();
     if (this.filterBarber) params.set('barberId', this.filterBarber);
@@ -582,6 +640,13 @@ class AdminApp extends LitElement {
     if (item.status !== 'confirmed') return '';
     const busy = this.actionId === item.id;
     return html`
+      <button
+        class="btn btn-sm btn-outline panel-reschedule-btn"
+        @click=${() => this._openRescheduleForm(item, source)}
+        ?disabled=${busy}
+      >
+        Remarcar
+      </button>
       <button
         class="btn btn-sm ${item.attended ? 'btn-outline' : 'btn-primary'} panel-presence-btn"
         @click=${() => this._setPresence(item.id, !item.attended, source)}
@@ -800,6 +865,551 @@ class AdminApp extends LitElement {
     `;
   }
 
+  async loadAgenda() {
+    this.agendaLoading = true;
+
+    try {
+      const data = await this._api('/.netlify/functions/admin-agenda');
+      this.agendaSettings = data.settings;
+      this.lunchForm = { ...data.settings.lunch };
+      this.catalog = data.catalog || this.catalog;
+      this.agendaError = '';
+    } catch (error) {
+      this.agendaError = this._parseError(error);
+    } finally {
+      this.agendaLoading = false;
+    }
+  }
+
+  _barbers() {
+    return this.catalog?.barbers || DEFAULT_BARBERS;
+  }
+
+  _barberName(id) {
+    return this._barbers().find((item) => item.id === id)?.name || id;
+  }
+
+  _blockForDate(iso) {
+    return (this.agendaSettings?.blocks || []).find((item) => item.from <= iso && iso <= item.to) || null;
+  }
+
+  _onLunchField(event) {
+    const { name, value, type, checked } = event.target;
+    this.lunchForm = { ...this.lunchForm, [name]: type === 'checkbox' ? checked : value };
+  }
+
+  async _saveLunch(event) {
+    event.preventDefault();
+    this.agendaSaving = true;
+    this.agendaError = '';
+
+    try {
+      const data = await this._api('/.netlify/functions/admin-agenda', {
+        method: 'PUT',
+        body: JSON.stringify({ lunch: this.lunchForm }),
+      });
+      this.agendaSettings = data.settings;
+      this.lunchForm = { ...data.settings.lunch };
+    } catch (error) {
+      this.agendaError = this._parseError(error);
+    } finally {
+      this.agendaSaving = false;
+    }
+  }
+
+  _onBlockField(event) {
+    const { name, value } = event.target;
+    this.blockForm = { ...this.blockForm, [name]: value };
+  }
+
+  _blockRange() {
+    const form = this.blockForm;
+    if (form.kind === 'week') return weekRange(form.date);
+    if (form.kind === 'range') return { from: form.from, to: form.to };
+    return { from: form.date, to: form.date };
+  }
+
+  async _addBlock(event) {
+    event.preventDefault();
+    const { from, to } = this._blockRange();
+    this.agendaSaving = true;
+    this.agendaError = '';
+    this.blockConflicts = [];
+
+    try {
+      const data = await this._api('/.netlify/functions/admin-agenda', {
+        method: 'POST',
+        body: JSON.stringify({ from, to, reason: this.blockForm.reason }),
+      });
+      this.agendaSettings = data.settings;
+      this.blockForm = { ...this.blockForm, reason: '' };
+      this.loadAppointments();
+    } catch (error) {
+      this.agendaError = this._parseError(error);
+      this.blockConflicts = error.data?.appointments || [];
+    } finally {
+      this.agendaSaving = false;
+    }
+  }
+
+  async _removeBlock(block) {
+    if (!confirm(`Liberar a agenda de ${formatRangeBr(block.from, block.to)}?`)) return;
+
+    this.agendaSaving = true;
+    this.agendaError = '';
+
+    try {
+      const data = await this._api('/.netlify/functions/admin-agenda', {
+        method: 'DELETE',
+        body: JSON.stringify({ id: block.id }),
+      });
+      this.agendaSettings = data.settings;
+      this.loadAppointments();
+    } catch (error) {
+      this.agendaError = this._parseError(error);
+    } finally {
+      this.agendaSaving = false;
+    }
+  }
+
+  async _ensureCatalog() {
+    if (!this.catalog) await this.loadAgenda();
+  }
+
+  _openAppointmentForm(date) {
+    this.apptFormError = '';
+    this.apptFormCheck = null;
+    this.subscriberQuery = '';
+    this.apptForm = {
+      mode: 'create',
+      source: 'list',
+      kind: 'avulso',
+      name: '',
+      cpf: '',
+      planName: '',
+      subscriberCpf: '',
+      serviceId: this.catalog?.services?.[0]?.id || 'corte',
+      extras: [],
+      barberId: 'gemeo-1',
+      date: date || this.selectedDate || todayIso(),
+      time: this.catalog?.slots?.[0] || '09:00',
+    };
+    this._ensureCatalog().then(() => {
+      if (this.apptForm && this.apptForm.mode === 'create' && !this.catalog?.services?.some((item) => item.id === this.apptForm.serviceId)) {
+        this.apptForm = { ...this.apptForm, serviceId: this.catalog?.services?.[0]?.id || 'corte' };
+      }
+    });
+    this._checkApptForm();
+  }
+
+  _openRescheduleForm(item, source = 'list') {
+    this.apptFormError = '';
+    this.apptFormCheck = null;
+    this.apptForm = {
+      mode: 'reschedule',
+      source,
+      id: item.id,
+      cpf: item.cpf,
+      customerName: item.customerName,
+      planName: item.planName,
+      current: { date: item.date, time: item.time, barberName: item.barberName },
+      barberId: item.barberId,
+      date: item.date,
+      time: item.time,
+    };
+    this._ensureCatalog();
+  }
+
+  _closeApptForm() {
+    this.apptForm = null;
+    this.apptFormCheck = null;
+    this.apptFormError = '';
+    this._checkTicket += 1;
+  }
+
+  _setApptKind(kind) {
+    this.apptForm = { ...this.apptForm, kind, name: '', cpf: '', subscriberCpf: '', planName: '' };
+    this.apptFormCheck = null;
+    this.subscriberQuery = '';
+    if (kind === 'subscriber' && this.subscribers.length === 0 && !this.subscribersLoading) {
+      this.loadSubscribers();
+    }
+    this._checkApptForm();
+  }
+
+  _onApptField(event) {
+    const { name, value, checked } = event.target;
+
+    if (name === 'extras') {
+      const extras = new Set(this.apptForm.extras);
+      if (checked) extras.add(value);
+      else extras.delete(value);
+      this.apptForm = { ...this.apptForm, extras: [...extras] };
+      return;
+    }
+
+    this.apptForm = { ...this.apptForm, [name]: value };
+    if (['barberId', 'date', 'time', 'cpf'].includes(name)) {
+      this._checkApptForm();
+    }
+  }
+
+  _pickSubscriber(event) {
+    const subscriber = this.subscribers.find((item) => item.cpf === event.target.value);
+    this.apptForm = {
+      ...this.apptForm,
+      name: subscriber?.name || '',
+      subscriberCpf: subscriber ? onlyDigits(subscriber.cpf) : '',
+      planName: subscriber?.planName || '',
+    };
+    this._checkApptForm();
+  }
+
+  _activeSubscribers() {
+    const query = this.subscriberQuery.trim().toLowerCase();
+    const cpfQuery = onlyDigits(this.subscriberQuery);
+    return this.subscribers
+      .filter((item) => item.status === 'ACTIVE')
+      .filter((item) => {
+        if (!query) return true;
+        return String(item.name || '').toLowerCase().includes(query)
+          || (cpfQuery && onlyDigits(item.cpf).includes(cpfQuery));
+      });
+  }
+
+  async _checkApptForm() {
+    const form = this.apptForm;
+    if (!form) return;
+
+    const ticket = ++this._checkTicket;
+    const params = new URLSearchParams({
+      action: 'check',
+      barberId: form.barberId,
+      date: form.date,
+      time: form.time,
+    });
+
+    if (form.mode === 'reschedule') {
+      params.set('excludeId', form.id);
+    }
+
+    const cpf = form.mode === 'reschedule'
+      ? onlyDigits(form.cpf)
+      : form.kind === 'subscriber' ? form.subscriberCpf : onlyDigits(form.cpf);
+    if (cpf.length === 11) params.set('cpf', cpf);
+
+    try {
+      const data = await this._api(`/.netlify/functions/admin-appointments?${params}`);
+      if (ticket === this._checkTicket && this.apptForm) this.apptFormCheck = data.conflicts;
+    } catch {
+      if (ticket === this._checkTicket) this.apptFormCheck = null;
+    }
+  }
+
+  async _submitApptForm(event, force = false) {
+    event?.preventDefault();
+    const form = this.apptForm;
+    if (!form) return;
+
+    this.apptFormSaving = true;
+    this.apptFormError = '';
+    let retryForced = false;
+
+    try {
+      const isReschedule = form.mode === 'reschedule';
+      const payload = isReschedule
+        ? { id: form.id, barberId: form.barberId, date: form.date, time: form.time, force }
+        : {
+          mode: form.kind,
+          name: form.name,
+          cpf: form.kind === 'subscriber' ? form.subscriberCpf : form.cpf,
+          planName: form.planName,
+          serviceId: form.serviceId,
+          extras: form.extras,
+          barberId: form.barberId,
+          date: form.date,
+          time: form.time,
+          force,
+        };
+
+      await this._api('/.netlify/functions/admin-appointments', {
+        method: isReschedule ? 'PATCH' : 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      this.apptForm = null;
+      this.apptFormCheck = null;
+
+      const target = new Date(`${form.date}T12:00:00`);
+      this.calendarMonth = target.getMonth();
+      this.calendarYear = target.getFullYear();
+      this.selectedDate = form.date;
+      this._syncMonthFilters();
+      await this.loadAppointments();
+
+      if (form.source === 'history' && this.selectedSubscriber) {
+        await this._openSubscriberHistory(this.selectedSubscriber);
+      }
+    } catch (error) {
+      if (error.data?.conflict?.canForce && !force) {
+        retryForced = confirm(`${error.message}\n\nQuer ${form.mode === 'reschedule' ? 'remarcar' : 'agendar'} mesmo assim?`);
+      }
+      if (!retryForced) this.apptFormError = this._parseError(error);
+    } finally {
+      this.apptFormSaving = false;
+    }
+
+    if (retryForced) await this._submitApptForm(null, true);
+  }
+
+  _renderConflictNotes() {
+    const check = this.apptFormCheck;
+    if (!check) return '';
+
+    const notes = [];
+    if (check.occupied) {
+      const item = check.occupied;
+      notes.push(html`<div class="panel-alert">⚠ ${item.barberName} já tem <strong>${item.customerName}</strong> (${item.planName}) às ${item.time} neste dia. Escolha outro horário ou barbeiro.</div>`);
+    }
+    if (check.sameClient) {
+      const item = check.sameClient;
+      notes.push(html`<div class="panel-alert">⚠ Este cliente já tem horário às ${item.time} neste dia com ${item.barberName}.</div>`);
+    }
+    if (check.block) {
+      notes.push(html`<div class="panel-warning">Dia bloqueado na agenda${check.block.reason ? ` (${check.block.reason})` : ''}. Você pode confirmar mesmo assim.</div>`);
+    }
+    if (check.lunch) {
+      notes.push(html`<div class="panel-warning">Este horário está no almoço (${check.lunch.start}–${check.lunch.end}). Você pode confirmar mesmo assim.</div>`);
+    }
+    return notes;
+  }
+
+  _renderApptForm() {
+    const form = this.apptForm;
+    if (!form) return '';
+
+    const catalog = this.catalog;
+    const isReschedule = form.mode === 'reschedule';
+    const check = this.apptFormCheck;
+    const hardConflict = Boolean(check?.occupied || check?.sameClient);
+    const subscribers = form.kind === 'subscriber' ? this._activeSubscribers() : [];
+    const canSubmit = !this.apptFormSaving && !hardConflict && (isReschedule || Boolean(form.name.trim()));
+
+    return html`
+      <div class="panel-overlay" @click=${this._closeApptForm}>
+        <aside class="panel-drawer" @click=${(event) => event.stopPropagation()} aria-label=${isReschedule ? 'Remarcar horário' : 'Novo agendamento'}>
+          <div class="panel-drawer-header">
+            <div>
+              <h2>${isReschedule ? 'Remarcar horário' : 'Novo agendamento'}</h2>
+              ${isReschedule
+                ? html`
+                  <p class="panel-drawer-meta">${form.customerName} · ${form.planName}</p>
+                  <p class="panel-drawer-meta">Atual: ${formatDateBr(form.current.date)} às ${form.current.time} · ${form.current.barberName}</p>
+                `
+                : html`<p class="panel-drawer-meta">Marca um único horário. Não cria cadastro de assinante.</p>`}
+            </div>
+            <button class="panel-drawer-close" type="button" @click=${this._closeApptForm} aria-label="Fechar">×</button>
+          </div>
+
+          <form class="panel-drawer-body panel-form" @submit=${this._submitApptForm}>
+            ${this.apptFormError ? html`<div class="panel-alert">${this.apptFormError}</div>` : ''}
+            ${!catalog ? html`<p class="panel-empty">Carregando opções da agenda...</p>` : ''}
+
+            ${isReschedule ? '' : html`
+              <div class="panel-view-tabs">
+                <button type="button" class="panel-view-tab ${form.kind === 'avulso' ? 'is-active' : ''}" @click=${() => this._setApptKind('avulso')}>Cliente avulso</button>
+                <button type="button" class="panel-view-tab ${form.kind === 'subscriber' ? 'is-active' : ''}" @click=${() => this._setApptKind('subscriber')}>Assinante</button>
+              </div>
+
+              ${form.kind === 'subscriber'
+                ? html`
+                  <label class="panel-label">
+                    Buscar assinante (nome ou CPF)
+                    <input type="text" .value=${this.subscriberQuery} @input=${(event) => { this.subscriberQuery = event.target.value; }} placeholder="Digite para filtrar">
+                  </label>
+                  <label class="panel-label">
+                    Assinante
+                    <select @change=${this._pickSubscriber} required>
+                      <option value="">${this.subscribersLoading ? 'Carregando assinantes...' : `Selecione (${subscribers.length} ativos)`}</option>
+                      ${subscribers.map((item) => html`
+                        <option value=${item.cpf} ?selected=${onlyDigits(item.cpf) === form.subscriberCpf}>${item.name} — ${item.planName}</option>
+                      `)}
+                    </select>
+                  </label>
+                  ${this.subscribersError ? html`<div class="panel-alert">${this.subscribersError}</div>` : ''}
+                `
+                : html`
+                  <label class="panel-label">
+                    Nome do cliente
+                    <input type="text" name="name" .value=${form.name} @input=${this._onApptField} required autocomplete="off">
+                  </label>
+                  <label class="panel-label">
+                    CPF (opcional)
+                    <input type="text" name="cpf" inputmode="numeric" maxlength="14" .value=${form.cpf} @input=${this._onApptField} placeholder="Deixe vazio se não tiver" autocomplete="off">
+                  </label>
+                  <label class="panel-label">
+                    Serviço
+                    <select name="serviceId" .value=${form.serviceId} @change=${this._onApptField}>
+                      ${(catalog?.services || []).map((item) => html`<option value=${item.id} ?selected=${item.id === form.serviceId}>${item.name} — ${formatMoney(item.price)}</option>`)}
+                    </select>
+                  </label>
+                  <fieldset class="panel-fieldset">
+                    <legend>Extras</legend>
+                    ${(catalog?.extras || []).map((item) => html`
+                      <label class="panel-check">
+                        <input type="checkbox" name="extras" value=${item.id} .checked=${form.extras.includes(item.id)} @change=${this._onApptField}>
+                        ${item.name} (${formatMoney(item.price)})
+                      </label>
+                    `)}
+                  </fieldset>
+                `}
+            `}
+
+            <div class="panel-form-grid">
+              <label class="panel-label">
+                Barbeiro
+                <select name="barberId" .value=${form.barberId} @change=${this._onApptField}>
+                  ${this._barbers().map((item) => html`<option value=${item.id} ?selected=${item.id === form.barberId}>${item.name}</option>`)}
+                </select>
+              </label>
+              <label class="panel-label">
+                Dia
+                <input type="date" name="date" .value=${form.date} @change=${this._onApptField} required>
+              </label>
+              <label class="panel-label">
+                Horário
+                <select name="time" .value=${form.time} @change=${this._onApptField}>
+                  ${(catalog?.slots || [form.time]).map((slot) => html`<option value=${slot} ?selected=${slot === form.time}>${slot}</option>`)}
+                </select>
+              </label>
+            </div>
+
+            ${this._renderConflictNotes()}
+
+            <div class="panel-header-actions">
+              <button class="btn btn-sm btn-primary" type="submit" ?disabled=${!canSubmit}>
+                ${this.apptFormSaving ? 'Salvando...' : isReschedule ? 'Confirmar nova data' : 'Agendar'}
+              </button>
+              <button class="btn btn-sm btn-outline" type="button" @click=${this._closeApptForm}>Cancelar</button>
+            </div>
+          </form>
+        </aside>
+      </div>
+    `;
+  }
+
+  _renderAgenda() {
+    const settings = this.agendaSettings;
+    const range = this._blockRange();
+    const kind = this.blockForm.kind;
+
+    return html`
+      ${this.agendaError ? html`<div class="panel-alert">${this.agendaError}</div>` : ''}
+
+      <section class="panel-filters panel-agenda-card">
+        <h3>Horário de almoço</h3>
+        <p class="panel-muted">Durante o almoço ninguém consegue agendar (site e painel avisam).</p>
+        <form class="panel-form-grid" @submit=${this._saveLunch}>
+          <label class="panel-check">
+            <input type="checkbox" name="enabled" .checked=${this.lunchForm.enabled} @change=${this._onLunchField}>
+            Ativar almoço
+          </label>
+          <label class="panel-label">
+            Início
+            <input type="time" name="start" .value=${this.lunchForm.start} @change=${this._onLunchField} required>
+          </label>
+          <label class="panel-label">
+            Fim
+            <input type="time" name="end" .value=${this.lunchForm.end} @change=${this._onLunchField} required>
+          </label>
+          <div class="panel-header-actions">
+            <button class="btn btn-sm btn-primary" type="submit" ?disabled=${this.agendaSaving}>Salvar almoço</button>
+          </div>
+        </form>
+        <p class="panel-muted">
+          ${settings.lunch.enabled
+            ? `Almoço ativo: ${settings.lunch.start} às ${settings.lunch.end}.`
+            : 'Almoço não definido: todos os horários ficam disponíveis.'}
+        </p>
+      </section>
+
+      <section class="panel-filters panel-agenda-card">
+        <h3>Bloquear a agenda</h3>
+        <p class="panel-muted">Só é possível bloquear dias sem agendamento. Se houver clientes marcados, remarque ou cancele antes.</p>
+        <form class="panel-form-grid" @submit=${this._addBlock}>
+          <label class="panel-label">
+            O que bloquear
+            <select name="kind" .value=${kind} @change=${this._onBlockField}>
+              <option value="day" ?selected=${kind === 'day'}>Um dia</option>
+              <option value="week" ?selected=${kind === 'week'}>Semana inteira (seg a dom)</option>
+              <option value="range" ?selected=${kind === 'range'}>Período</option>
+            </select>
+          </label>
+          ${kind === 'range'
+            ? html`
+              <label class="panel-label">
+                De
+                <input type="date" name="from" .value=${this.blockForm.from} @change=${this._onBlockField} required>
+              </label>
+              <label class="panel-label">
+                Até
+                <input type="date" name="to" .value=${this.blockForm.to} @change=${this._onBlockField} required>
+              </label>
+            `
+            : html`
+              <label class="panel-label">
+                ${kind === 'week' ? 'Qualquer dia da semana' : 'Dia'}
+                <input type="date" name="date" .value=${this.blockForm.date} @change=${this._onBlockField} required>
+              </label>
+            `}
+          <label class="panel-label">
+            Motivo (opcional)
+            <input type="text" name="reason" maxlength="120" .value=${this.blockForm.reason} @input=${this._onBlockField} placeholder="Ex: Feriado, folga">
+          </label>
+          <div class="panel-header-actions">
+            <button class="btn btn-sm btn-primary" type="submit" ?disabled=${this.agendaSaving}>Bloquear</button>
+          </div>
+        </form>
+        <p class="panel-muted">${range.from && range.to ? `Será bloqueado: ${formatRangeBr(range.from, range.to)}` : ''}</p>
+
+        ${this.blockConflicts.length
+          ? html`
+            <ul class="panel-conflict-list">
+              ${this.blockConflicts.map((item) => html`
+                <li>${formatDateBr(item.date)} às ${item.time} — ${item.customerName} (${item.barberName})</li>
+              `)}
+            </ul>
+          `
+          : ''}
+      </section>
+
+      <section class="panel-table-wrap">
+        ${this.agendaLoading && settings.blocks.length === 0
+          ? html`<p class="panel-empty">Carregando...</p>`
+          : settings.blocks.length === 0
+            ? html`<p class="panel-empty">Nenhum bloqueio ativo.</p>`
+            : html`
+              <table class="panel-table">
+                <thead>
+                  <tr><th>Período bloqueado</th><th>Motivo</th><th></th></tr>
+                </thead>
+                <tbody>
+                  ${settings.blocks.map((block) => html`
+                    <tr>
+                      <td data-label="Período">${formatRangeBr(block.from, block.to)}</td>
+                      <td data-label="Motivo">${block.reason || '—'}</td>
+                      <td data-label="Ações">
+                        <button class="btn btn-sm btn-outline panel-cancel-btn" @click=${() => this._removeBlock(block)} ?disabled=${this.agendaSaving}>Liberar</button>
+                      </td>
+                    </tr>
+                  `)}
+                </tbody>
+              </table>
+            `}
+      </section>
+    `;
+  }
+
   _onFilterChange(event) {
     const { name, value } = event.target;
     this[name] = value;
@@ -877,8 +1487,8 @@ class AdminApp extends LitElement {
         </div>
 
         <div class="cal-legend">
-          <span class="cal-legend-item"><span class="cal-dot gemeo-1"></span> Gêmeo 1</span>
-          <span class="cal-legend-item"><span class="cal-dot gemeo-2"></span> Gêmeo 2</span>
+          <span class="cal-legend-item"><span class="cal-dot gemeo-1"></span> ${this._barberName('gemeo-1')}</span>
+          <span class="cal-legend-item"><span class="cal-dot gemeo-2"></span> ${this._barberName('gemeo-2')}</span>
         </div>
 
         <div class="cal-grid" role="grid" aria-label="Calendário de agendamentos">
@@ -893,11 +1503,12 @@ class AdminApp extends LitElement {
             return html`
               <button
                 type="button"
-                class="cal-day ${cell.inMonth ? '' : 'is-outside'} ${cell.isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''} ${events.length ? 'has-events' : ''}"
+                class="cal-day ${cell.inMonth ? '' : 'is-outside'} ${cell.isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''} ${events.length ? 'has-events' : ''} ${this._blockForDate(cell.iso) ? 'is-blocked' : ''}"
                 @click=${() => this._selectDate(cell.iso, cell.inMonth)}
                 aria-label="${formatDateBr(cell.iso)} — ${events.length} agendamento(s)"
               >
                 <span class="cal-day-number">${cell.day}</span>
+                ${this._blockForDate(cell.iso) ? html`<span class="cal-blocked-label">Bloqueado</span>` : ''}
                 <div class="cal-day-events">
                   ${visible.map((item) => html`
                     <span class="cal-event ${item.barberId} ${item.status === 'cancelled' ? 'is-cancelled' : ''}">
@@ -917,6 +1528,14 @@ class AdminApp extends LitElement {
             <h3>${formatDateBr(this.selectedDate)}</h3>
             <span class="cal-day-count">${selectedItems.length} agendamento(s)</span>
           </div>
+
+          ${this._blockForDate(this.selectedDate)
+            ? html`<div class="panel-warning">Dia bloqueado${this._blockForDate(this.selectedDate).reason ? `: ${this._blockForDate(this.selectedDate).reason}` : ''}</div>`
+            : ''}
+
+          <button class="btn btn-sm btn-primary cal-add-btn" type="button" @click=${() => this._openAppointmentForm(this.selectedDate)}>
+            + Agendar neste dia
+          </button>
 
           ${selectedItems.length === 0
             ? html`<p class="panel-empty cal-day-empty">Nenhum agendamento neste dia.</p>`
@@ -1469,7 +2088,7 @@ class AdminApp extends LitElement {
             <span>2k</span>
           </a>
           <div class="panel-header-actions">
-            <button class="btn btn-sm btn-outline" @click=${() => this._refreshCurrentSection()} ?disabled=${this.loading || this.subscribersLoading || this.financeLoading || this.productsLoading}>
+            <button class="btn btn-sm btn-outline" @click=${() => this._refreshCurrentSection()} ?disabled=${this.loading || this.subscribersLoading || this.financeLoading || this.productsLoading || this.agendaLoading}>
               Atualizar
             </button>
             <button class="btn btn-sm btn-outline" @click=${this._logout}>Sair</button>
@@ -1487,7 +2106,9 @@ class AdminApp extends LitElement {
               ? 'Acompanhe receitas de assinaturas (Asaas), agendamentos avulsos e cobranças pendentes.'
               : this.section === 'products'
                 ? 'Cadastre e gerencie os produtos vendidos na barbearia: preço, estoque e disponibilidade.'
-                : 'Visualize e gerencie os horários reservados pelos assinantes.'}</p>
+                : this.section === 'agenda'
+                  ? 'Defina o horário de almoço e bloqueie dias ou semanas em que a barbearia não atende.'
+                  : 'Visualize e gerencie os horários reservados pelos assinantes.'}</p>
         </div>
 
         <div class="panel-section-tabs">
@@ -1515,6 +2136,12 @@ class AdminApp extends LitElement {
           >
             Produtos
           </button>
+          <button
+            class="panel-section-tab ${this.section === 'agenda' ? 'is-active' : ''}"
+            @click=${() => this._setSection('agenda')}
+          >
+            Agenda
+          </button>
         </div>
 
         ${this.section === 'appointments' && this.error
@@ -1527,7 +2154,9 @@ class AdminApp extends LitElement {
             ? this._renderFinance()
             : this.section === 'products'
               ? this._renderProducts()
-              : html`
+              : this.section === 'agenda'
+                ? this._renderAgenda()
+                : html`
             <div class="panel-stats">
               <article class="panel-stat">
                 <span class="panel-stat-value">${stats.total}</span>
@@ -1543,15 +2172,18 @@ class AdminApp extends LitElement {
               </article>
               <article class="panel-stat">
                 <span class="panel-stat-value">${stats.gemeo1}</span>
-                <span class="panel-stat-label">Gêmeo 1</span>
+                <span class="panel-stat-label">${this._barberName('gemeo-1')}</span>
               </article>
               <article class="panel-stat">
                 <span class="panel-stat-value">${stats.gemeo2}</span>
-                <span class="panel-stat-label">Gêmeo 2</span>
+                <span class="panel-stat-label">${this._barberName('gemeo-2')}</span>
               </article>
             </div>
 
             <div class="panel-view-tabs">
+              <button class="btn btn-sm btn-primary" type="button" @click=${() => this._openAppointmentForm()}>
+                + Novo agendamento
+              </button>
               <button
                 class="panel-view-tab ${this.viewMode === 'calendar' ? 'is-active' : ''}"
                 @click=${() => this._setView('calendar')}
@@ -1588,8 +2220,7 @@ class AdminApp extends LitElement {
                 Barbeiro
                 <select name="filterBarber" .value=${this.filterBarber} @change=${this._onFilterChange}>
                   <option value="">Todos</option>
-                  <option value="gemeo-1">Gêmeo 1</option>
-                  <option value="gemeo-2">Gêmeo 2</option>
+                  ${this._barbers().map((item) => html`<option value=${item.id}>${item.name}</option>`)}
                 </select>
               </label>
               <label class="panel-label">
@@ -1609,6 +2240,8 @@ class AdminApp extends LitElement {
                 : this._renderTable()}
           `}
       </main>
+
+      ${this._renderApptForm()}
     `;
   }
 }

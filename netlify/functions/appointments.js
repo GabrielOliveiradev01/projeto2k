@@ -1,77 +1,34 @@
 const { jsonResponse, onlyDigits, getSubscriptionByCpf } = require('./lib/asaas');
 const { getSupabaseAdmin } = require('./lib/supabase');
 
-const BARBERS = [
-  { id: 'gemeo-1', name: 'Gêmeo 1' },
-  { id: 'gemeo-2', name: 'Gêmeo 2' },
-];
+const {
+  BARBERS,
+  AVULSO_SERVICES,
+  parseExtraIds,
+  resolveExtras,
+  buildAvulsoPlanName,
+  generateSlots,
+  isValidDate,
+  loadSettings,
+  isLunchSlot,
+  findBlock,
+} = require('./lib/agenda');
 
-const WORK_START = 9;
-const WORK_END = 18;
-const SLOT_MINUTES = 40;
 const MAX_DAYS_AHEAD = 30;
 const LIMITED_MONTHLY_VISITS = 4;
 
-const AVULSO_SERVICES = {
-  corte: { name: 'Corte', label: 'Corte — R$ 50,00', price: 50 },
-  barba: { name: 'Barba', label: 'Barba — R$ 40,00', price: 40 },
-  'corte-barba': { name: 'Corte + Barba', label: 'Corte + Barba — R$ 70,00', price: 70 },
-};
-
-const EXTRA_SERVICES = {
-  sobrancelha: { name: 'Sobrancelha', price: 10 },
-  hidratacao: { name: 'Hidratação', price: 25 },
-  'limpeza-pele': { name: 'Limpeza de pele', price: 40 },
-  'dep-cera-nariz': { name: 'Dep. cera nariz', price: 15 },
-  'dep-cera-ouvido': { name: 'Dep. cera ouvido', price: 15 },
-  'combo-cera': { name: 'Combo cera', price: 20 },
-};
-
-function parseExtraIds(body) {
-  const raw = body.extras;
-  if (!Array.isArray(raw)) return [];
-  return [...new Set(raw.map((id) => String(id || '').trim()).filter(Boolean))];
-}
-
-function resolveExtras(extraIds) {
-  return extraIds.map((id) => {
-    const extra = EXTRA_SERVICES[id];
-    if (!extra) {
-      throw new Error(`Serviço extra inválido: ${id}`);
-    }
-    return { id, ...extra };
-  });
-}
-
-function buildAvulsoPlanName(service, extras) {
-  const extrasTotal = extras.reduce((sum, item) => sum + item.price, 0);
-  const total = service.price + extrasTotal;
-  const extrasLabel = extras.length
-    ? ` + ${extras.map((item) => item.name).join(', ')}`
-    : '';
-  const totalLabel = total.toFixed(2).replace('.', ',');
-  return `Avulso — ${service.name}${extrasLabel} (Total: R$ ${totalLabel})`;
-}
-
-function generateSlotsForDate() {
-  const slots = [];
-  let totalMinutes = WORK_START * 60;
-  const endMinutes = WORK_END * 60;
-
-  while (totalMinutes + SLOT_MINUTES <= endMinutes) {
-    const hour = Math.floor(totalMinutes / 60);
-    const minute = totalMinutes % 60;
-    slots.push(`${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
-    totalMinutes += SLOT_MINUTES;
+// Regras definidas no painel: dia/semana bloqueado e horário de almoço.
+function getAgendaRuleError(date, time, settings) {
+  const block = findBlock(date, settings.blocks);
+  if (block) {
+    return block.reason
+      ? `Agenda indisponível neste dia (${block.reason}).`
+      : 'Agenda indisponível neste dia.';
   }
-
-  return slots;
-}
-
-function isValidDate(dateStr) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
-  const date = new Date(`${dateStr}T12:00:00`);
-  return !Number.isNaN(date.getTime());
+  if (isLunchSlot(time, settings.lunch)) {
+    return 'Este horário está no intervalo de almoço. Escolha outro.';
+  }
+  return null;
 }
 
 function isSlotInPast(dateStr, time) {
@@ -137,9 +94,16 @@ async function handleGetAvailability(event) {
     return jsonResponse(400, { error: 'Data inválida.' });
   }
 
+  const settings = await loadSettings(event);
+  const block = findBlock(date, settings.blocks);
+  if (block) {
+    return jsonResponse(200, { date, barberId, slots: [], blocked: true, reason: block.reason || '' });
+  }
+
   const bookedTimes = await getBookedTimes(barberId, date);
-  const slots = generateSlotsForDate()
+  const slots = generateSlots()
     .filter((time) => !bookedTimes.has(time))
+    .filter((time) => !isLunchSlot(time, settings.lunch))
     .filter((time) => !isSlotInPast(date, time));
 
   return jsonResponse(200, { date, barberId, slots });
@@ -196,7 +160,7 @@ async function handleCreateAvulsoAppointment(event) {
     return jsonResponse(400, { error: 'Data inválida.' });
   }
 
-  const validSlots = generateSlotsForDate();
+  const validSlots = generateSlots();
   if (!validSlots.includes(time)) {
     return jsonResponse(400, { error: 'Horário inválido.' });
   }
@@ -209,6 +173,11 @@ async function handleCreateAvulsoAppointment(event) {
   maxDate.setDate(maxDate.getDate() + MAX_DAYS_AHEAD);
   if (new Date(`${date}T12:00:00`) > maxDate) {
     return jsonResponse(400, { error: 'Agendamento permitido apenas nos próximos 30 dias.' });
+  }
+
+  const ruleError = getAgendaRuleError(date, time, await loadSettings(event));
+  if (ruleError) {
+    return jsonResponse(409, { error: ruleError });
   }
 
   const bookedTimes = await getBookedTimes(barberId, date);
@@ -286,7 +255,7 @@ async function handleCreateAppointment(event, apiKey) {
     return jsonResponse(400, { error: 'Data inválida.' });
   }
 
-  const validSlots = generateSlotsForDate();
+  const validSlots = generateSlots();
   if (!validSlots.includes(time)) {
     return jsonResponse(400, { error: 'Horário inválido.' });
   }
@@ -313,6 +282,11 @@ async function handleCreateAppointment(event, apiKey) {
         error: `Limite de ${LIMITED_MONTHLY_VISITS} visitas/mês atingido no seu plano Limited.`,
       });
     }
+  }
+
+  const ruleError = getAgendaRuleError(date, time, await loadSettings(event));
+  if (ruleError) {
+    return jsonResponse(409, { error: ruleError });
   }
 
   const bookedTimes = await getBookedTimes(barberId, date);
