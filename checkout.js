@@ -37,8 +37,8 @@ window.addEventListener('resize', () => {
 const CHECKOUT_PLANS = {
   'cuts-limited': {
     name: 'Cuts Limited',
-    price: 'R$ 89,90',
-    value: 89.9,
+    price: 'R$ 125,00',
+    value: 125,
     badge: 'Limited',
     type: 'limited',
     desc: 'Cortes de cabelo com limite mensal',
@@ -46,8 +46,8 @@ const CHECKOUT_PLANS = {
   },
   'barb-limited': {
     name: 'Barb Limited',
-    price: 'R$ 119,90',
-    value: 119.9,
+    price: 'R$ 89,90',
+    value: 89.9,
     badge: 'Limited',
     type: 'limited',
     desc: 'Barba com limite mensal',

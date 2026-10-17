@@ -1,8 +1,8 @@
 const ASAAS_BASE_URL = 'https://api.asaas.com/v3';
 
 const PLAN_VALUES = {
-  'cuts-limited': 89.9,
-  'barb-limited': 119.9,
+  'cuts-limited': 125,
+  'barb-limited': 89.9,
   'duos-limited': 179.9,
 };
 
