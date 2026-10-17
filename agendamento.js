@@ -193,6 +193,7 @@ function getAvailableDates() {
   for (let i = 0; i < MAX_DAYS_AHEAD; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
+    if (date.getDay() === 0) continue; // domingo: fechado
     dates.push({
       value: toInputDate(date),
       weekday: WEEKDAYS[date.getDay()],
@@ -340,7 +341,7 @@ async function loadSlots() {
       throw new Error(data.error || 'Não foi possível carregar os horários.');
     }
 
-    renderTimeCards(data.slots, data.blocked ? data.reason || '' : undefined);
+    renderTimeCards(data.slots, data.blocked || data.closed ? data.reason || '' : undefined);
   } catch (error) {
     timeGrid.innerHTML = '';
     slotsHint.textContent = 'Erro ao carregar horários.';

@@ -885,6 +885,13 @@ class AdminApp extends LitElement {
     return this.catalog?.barbers || DEFAULT_BARBERS;
   }
 
+  // Horários de atendimento do dia (varia por dia da semana; domingo = fechado).
+  _slotsForDate(date) {
+    if (!date) return [];
+    const weekday = new Date(`${date}T12:00:00`).getDay();
+    return this.catalog?.slotsByWeekday?.[weekday] || [];
+  }
+
   _barberName(id) {
     return this._barbers().find((item) => item.id === id)?.name || id;
   }
@@ -992,14 +999,20 @@ class AdminApp extends LitElement {
       extras: [],
       barberId: 'gemeo-1',
       date: date || this.selectedDate || todayIso(),
-      time: this.catalog?.slots?.[0] || '09:00',
+      time: '',
     };
     this._ensureCatalog().then(() => {
-      if (this.apptForm && this.apptForm.mode === 'create' && !this.catalog?.services?.some((item) => item.id === this.apptForm.serviceId)) {
-        this.apptForm = { ...this.apptForm, serviceId: this.catalog?.services?.[0]?.id || 'corte' };
-      }
+      if (!this.apptForm || this.apptForm.mode !== 'create') return;
+      const slots = this._slotsForDate(this.apptForm.date);
+      this.apptForm = {
+        ...this.apptForm,
+        serviceId: this.catalog?.services?.some((item) => item.id === this.apptForm.serviceId)
+          ? this.apptForm.serviceId
+          : this.catalog?.services?.[0]?.id || 'corte',
+        time: slots.includes(this.apptForm.time) ? this.apptForm.time : slots[0] || '',
+      };
+      this._checkApptForm();
     });
-    this._checkApptForm();
   }
 
   _openRescheduleForm(item, source = 'list') {
@@ -1049,6 +1062,14 @@ class AdminApp extends LitElement {
     }
 
     this.apptForm = { ...this.apptForm, [name]: value };
+
+    if (name === 'date') {
+      const slots = this._slotsForDate(value);
+      if (slots.length && !slots.includes(this.apptForm.time)) {
+        this.apptForm = { ...this.apptForm, time: slots[0] };
+      }
+    }
+
     if (['barberId', 'date', 'time', 'cpf'].includes(name)) {
       this._checkApptForm();
     }
@@ -1082,6 +1103,11 @@ class AdminApp extends LitElement {
     if (!form) return;
 
     const ticket = ++this._checkTicket;
+    if (!form.time || !form.date) {
+      this.apptFormCheck = null;
+      return;
+    }
+
     const params = new URLSearchParams({
       action: 'check',
       barberId: form.barberId,
@@ -1193,7 +1219,10 @@ class AdminApp extends LitElement {
     const check = this.apptFormCheck;
     const hardConflict = Boolean(check?.occupied || check?.sameClient);
     const subscribers = form.kind === 'subscriber' ? this._activeSubscribers() : [];
-    const canSubmit = !this.apptFormSaving && !hardConflict && (isReschedule || Boolean(form.name.trim()));
+    const daySlots = this._slotsForDate(form.date);
+    const closedDay = Boolean(catalog) && daySlots.length === 0;
+    const canSubmit = !this.apptFormSaving && !hardConflict && !closedDay && Boolean(form.time)
+      && (isReschedule || Boolean(form.name.trim()));
 
     return html`
       <div class="panel-overlay" @click=${this._closeApptForm}>
@@ -1279,11 +1308,12 @@ class AdminApp extends LitElement {
               <label class="panel-label">
                 Horário
                 <select name="time" .value=${form.time} @change=${this._onApptField}>
-                  ${(catalog?.slots || [form.time]).map((slot) => html`<option value=${slot} ?selected=${slot === form.time}>${slot}</option>`)}
+                  ${(daySlots.includes(form.time) || !form.time ? daySlots : [form.time, ...daySlots]).map((slot) => html`<option value=${slot} ?selected=${slot === form.time}>${slot}${daySlots.includes(slot) ? '' : ' (atual)'}</option>`)}
                 </select>
               </label>
             </div>
 
+            ${closedDay ? html`<div class="panel-alert">A barbearia não abre neste dia (domingo). Escolha outra data.</div>` : ''}
             ${this._renderConflictNotes()}
 
             <div class="panel-header-actions">

@@ -9,6 +9,7 @@ const {
   buildAvulsoPlanName,
   barberNameFor,
   generateSlots,
+  getWorkingHours,
   isValidDate,
   loadSettings,
   isLunchSlot,
@@ -118,8 +119,11 @@ function sanitizeAppointmentTarget(source) {
   if (!isValidDate(date)) {
     return { error: 'Data inválida.' };
   }
-  if (!generateSlots().includes(time)) {
-    return { error: 'Horário inválido.' };
+  if (!getWorkingHours(date)) {
+    return { error: 'A barbearia não abre neste dia.' };
+  }
+  if (!generateSlots(date).includes(time)) {
+    return { error: 'Horário inválido para este dia.' };
   }
 
   return { target: { barberId, date, time } };

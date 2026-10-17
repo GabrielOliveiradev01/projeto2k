@@ -8,6 +8,7 @@ const {
   resolveExtras,
   buildAvulsoPlanName,
   generateSlots,
+  getWorkingHours,
   isValidDate,
   loadSettings,
   isLunchSlot,
@@ -94,6 +95,10 @@ async function handleGetAvailability(event) {
     return jsonResponse(400, { error: 'Data inválida.' });
   }
 
+  if (!getWorkingHours(date)) {
+    return jsonResponse(200, { date, barberId, slots: [], closed: true, reason: 'domingo' });
+  }
+
   const settings = await loadSettings(event);
   const block = findBlock(date, settings.blocks);
   if (block) {
@@ -101,7 +106,7 @@ async function handleGetAvailability(event) {
   }
 
   const bookedTimes = await getBookedTimes(barberId, date);
-  const slots = generateSlots()
+  const slots = generateSlots(date)
     .filter((time) => !bookedTimes.has(time))
     .filter((time) => !isLunchSlot(time, settings.lunch))
     .filter((time) => !isSlotInPast(date, time));
@@ -160,7 +165,11 @@ async function handleCreateAvulsoAppointment(event) {
     return jsonResponse(400, { error: 'Data inválida.' });
   }
 
-  const validSlots = generateSlots();
+  if (!getWorkingHours(date)) {
+    return jsonResponse(400, { error: 'A barbearia não abre neste dia.' });
+  }
+
+  const validSlots = generateSlots(date);
   if (!validSlots.includes(time)) {
     return jsonResponse(400, { error: 'Horário inválido.' });
   }
@@ -255,7 +264,11 @@ async function handleCreateAppointment(event, apiKey) {
     return jsonResponse(400, { error: 'Data inválida.' });
   }
 
-  const validSlots = generateSlots();
+  if (!getWorkingHours(date)) {
+    return jsonResponse(400, { error: 'A barbearia não abre neste dia.' });
+  }
+
+  const validSlots = generateSlots(date);
   if (!validSlots.includes(time)) {
     return jsonResponse(400, { error: 'Horário inválido.' });
   }

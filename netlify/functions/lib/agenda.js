@@ -5,9 +5,19 @@ const BARBERS = [
   { id: 'gemeo-2', name: 'Kawan' },
 ];
 
-const WORK_START = 9;
-const WORK_END = 18;
 const SLOT_MINUTES = 40;
+
+// Horário de funcionamento por dia da semana (0 = domingo ... 6 = sábado).
+// null = fechado.
+const WORKING_HOURS = {
+  0: null,
+  1: { start: '10:00', end: '20:00' },
+  2: { start: '10:00', end: '20:00' },
+  3: { start: '10:00', end: '20:00' },
+  4: { start: '10:00', end: '20:00' },
+  5: { start: '09:00', end: '20:00' },
+  6: { start: '09:00', end: '20:00' },
+};
 const MAX_BLOCK_DAYS = 366;
 
 const AVULSO_SERVICES = {
@@ -60,10 +70,20 @@ function barberNameFor(barberId, fallback = '') {
   return barber ? barber.name : fallback;
 }
 
-function generateSlots() {
+function weekdayOf(dateStr) {
+  return new Date(`${dateStr}T12:00:00`).getDay();
+}
+
+function getWorkingHours(dateStr) {
+  return WORKING_HOURS[weekdayOf(dateStr)] || null;
+}
+
+function slotsForHours(hours) {
   const slots = [];
-  let totalMinutes = WORK_START * 60;
-  const endMinutes = WORK_END * 60;
+  if (!hours) return slots;
+
+  let totalMinutes = Number(hours.start.slice(0, 2)) * 60 + Number(hours.start.slice(3));
+  const endMinutes = Number(hours.end.slice(0, 2)) * 60 + Number(hours.end.slice(3));
 
   while (totalMinutes + SLOT_MINUTES <= endMinutes) {
     const hour = Math.floor(totalMinutes / 60);
@@ -73,6 +93,17 @@ function generateSlots() {
   }
 
   return slots;
+}
+
+// Horários do dia informado (YYYY-MM-DD); vazio se a barbearia não abre.
+function generateSlots(dateStr) {
+  return slotsForHours(getWorkingHours(dateStr));
+}
+
+function slotsByWeekday() {
+  return Object.fromEntries(
+    Object.keys(WORKING_HOURS).map((day) => [day, slotsForHours(WORKING_HOURS[day])])
+  );
 }
 
 function isValidDate(dateStr) {
@@ -176,7 +207,10 @@ module.exports = {
   resolveExtras,
   buildAvulsoPlanName,
   barberNameFor,
+  WORKING_HOURS,
+  getWorkingHours,
   generateSlots,
+  slotsByWeekday,
   isValidDate,
   isValidTime,
   toMinutes,

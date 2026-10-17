@@ -6,7 +6,8 @@ const {
   AVULSO_SERVICES,
   EXTRA_SERVICES,
   barberNameFor,
-  generateSlots,
+  slotsByWeekday,
+  WORKING_HOURS,
   MAX_BLOCK_DAYS,
   loadSettings,
   saveSettings,
@@ -29,7 +30,8 @@ function buildCatalog() {
   const toList = (map) => Object.entries(map).map(([id, item]) => ({ id, name: item.name, price: item.price }));
   return {
     barbers: BARBERS,
-    slots: generateSlots(),
+    workingHours: WORKING_HOURS,
+    slotsByWeekday: slotsByWeekday(),
     services: toList(AVULSO_SERVICES),
     extras: toList(EXTRA_SERVICES),
   };
