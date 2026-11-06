@@ -37,8 +37,8 @@ window.addEventListener('resize', () => {
 const CHECKOUT_PLANS = {
   'cuts-limited': {
     name: 'Cuts Limited',
-    price: 'R$ 109,00',
-    value: 109,
+    price: 'R$ 109,90',
+    value: 109.9,
     badge: 'Limited',
     type: 'limited',
     desc: 'Cortes de cabelo com limite mensal',
