@@ -1,4 +1,5 @@
 const ASAAS_BASE_URL = 'https://api.asaas.com/v3';
+const SUBSCRIPTIONS_PAUSED = true;
 
 const PLAN_VALUES = {
   'cuts-limited': 109.9,
@@ -109,6 +110,12 @@ exports.handler = async (event) => {
 
   if (event.httpMethod !== 'POST') {
     return jsonResponse(405, { error: 'Método não permitido.' });
+  }
+
+  if (SUBSCRIPTIONS_PAUSED) {
+    return jsonResponse(403, {
+      error: 'As novas assinaturas estão pausadas no momento.',
+    });
   }
 
   const apiKey = process.env.ASAAS_API_KEY;
